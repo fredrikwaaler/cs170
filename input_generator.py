@@ -1,5 +1,6 @@
 import random
 from string import ascii_letters
+from dijkstra import Graph
 
 TEST_MODE = True
 random_gen = random.Random()
@@ -42,12 +43,24 @@ class GraphCreator:
             if edge_num == 0 and new_edges == 0:
                 new_edges = 1
 
+            # Always add to one previous node, so that we ensure graph is connected:
+            if loc_num != 0:
+                rand_prev = random_gen.randint(0, loc_num-1)
+                if adjacency[rand_prev] == 'x':
+                    adjacency[rand_prev] = random_gen.randint(1, 10)
+                    new_edges -= 1
+
             # Nodes we can add new edges to:
             pos_new_neighbours = [i for i in range(loc_num + 1, num_loc)]
             for new_edge in range(new_edges):
                 adjacency[pos_new_neighbours.pop(random_gen.randint(0, len(pos_new_neighbours)-1))] = random_gen.randint(1, 10)
 
             adjacency_matrix.append(adjacency)
+
+        for a in range(len(adjacency_matrix)):
+            for i in range(num_loc):
+                if adjacency_matrix[a][i] != 'x':
+                    adjacency_matrix[i][a] = adjacency_matrix[a][i]
 
         return adjacency_matrix
 
@@ -144,25 +157,43 @@ class GraphCreator:
 
 
 generator = GraphCreator()
-generator.generate_input_file(50)
-generator.generate_input_file(100)
-generator.generate_input_file(200)
+#generator.generate_input_file(50)
+#generator.generate_input_file(100)
+#generator.generate_input_file(200)
 
 
 def output_generator(ad_mat, locations, home_index):
+    # Create a graph
+    graph = Graph()
     visited = [0]  # Start at node 0
     home_drops = []
+    path = []
     while len(visited) != len(ad_mat):
         remaining = []
         for node in range(len(ad_mat)):
             if node not in visited:
-                remaining += node
+                remaining.append(node)
         best = remaining[0]
         for j in remaining[1:]:
-            if dijkstra(ad_mat, visited[-1], j) > remaining(ad_mat, visited[-1], best):
+            if graph.dijkstra(ad_mat, visited[-1])[0][j] > graph.dijkstra(ad_mat, visited[-1])[0][best]:
                 best = j
-        visited.append(best)
+        path.extend(graph.dijkstra(ad_mat, visited[-1])[best+1])
+        visited.append(graph.dijkstra(ad_mat, visited[-1])[0][best])
         if best in home_index:
             home_drops.append("{} {}".format(locations[best], locations[best]))
 
     # Route from end node to start node
+    path.extend(graph.dijkstra(ad_mat, visited[-1])[1])
+    visited.append(0)
+
+    print(path)
+
+
+
+mat10 = generator.generate_adjacency_matrix(5)
+for i in range(len(mat10)):
+    for j in range(len(mat10)):
+        if mat10[i][j] == 'x':
+            mat10[i][j] = 0
+locations = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K']
+output_generator(mat10, locations, home_index=[0, 1,2,3,4,])
