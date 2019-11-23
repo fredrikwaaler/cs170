@@ -162,12 +162,12 @@ generator = GraphCreator()
 #generator.generate_input_file(200)
 
 
-def output_generator(ad_mat, locations, home_index):
+def output_path(ad_mat):
     # Create a graph
     graph = Graph()
     visited = [0]  # Start at node 0
     home_drops = []
-    path = []
+    path = [0]
     while len(visited) != len(ad_mat):
         remaining = []
         for node in range(len(ad_mat)):
@@ -175,25 +175,63 @@ def output_generator(ad_mat, locations, home_index):
                 remaining.append(node)
         best = remaining[0]
         for j in remaining[1:]:
-            if graph.dijkstra(ad_mat, visited[-1])[0][j] > graph.dijkstra(ad_mat, visited[-1])[0][best]:
+            if graph.dijkstra(ad_mat, visited[-1])[0][j] < graph.dijkstra(ad_mat, visited[-1])[0][best]:
                 best = j
-        path.extend(graph.dijkstra(ad_mat, visited[-1])[best+1])
-        visited.append(graph.dijkstra(ad_mat, visited[-1])[0][best])
-        if best in home_index:
-            home_drops.append("{} {}".format(locations[best], locations[best]))
+        path.extend(graph.dijkstra(ad_mat, visited[-1])[best+1][1:])
+        visited.append(best)
 
     # Route from end node to start node
-    path.extend(graph.dijkstra(ad_mat, visited[-1])[1])
-    visited.append(0)
+    path.extend(graph.dijkstra(ad_mat, visited[-1])[1][1:])
 
-    print(path)
-
+    return path
 
 
-mat10 = generator.generate_adjacency_matrix(5)
-for i in range(len(mat10)):
-    for j in range(len(mat10)):
-        if mat10[i][j] == 'x':
-            mat10[i][j] = 0
-locations = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K']
-output_generator(mat10, locations, home_index=[0, 1,2,3,4,])
+
+def output_generator(input_file):
+    with open(input_file) as file:
+        lines = file.read().splitlines()
+
+    locations = lines[2].split()
+    drop_of = lines[1]
+    homes = lines[3].split()
+
+    home_indexes = []
+    for i in range(len(locations)):
+        if locations[i] in homes:
+            home_indexes.append(i)
+
+    # Create matrix from file
+    matrix = []
+    for i in lines[5:]:
+        matrix.append(i.split())
+
+    print(matrix)
+
+    for i in range(len(matrix)):
+        for j in range(len(matrix)):
+            if matrix[i][j] == 'x':
+                matrix[i][j] = 0
+            else:
+                matrix[i][j] = int(matrix[i][j])
+
+    path_indexes = output_path(matrix)
+    path = [locations[j] for j in path_indexes]
+
+    file.close()
+    with open('{}.out'.format(len(locations)), 'w') as file:
+        file.writelines(['%s ' % stop for stop in path])
+        file.write('\n')
+        file.write(drop_of)
+        file.write('\n')
+        for home in home_indexes:
+            file.write('{} {}'.format(locations[home], locations[home]))
+            file.write('\n')
+
+    file.close()
+
+
+
+output_generator('50.in')
+output_generator('100.in')
+output_generator('200.in')
+
