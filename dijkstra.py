@@ -1,82 +1,143 @@
-# Python program for Dijkstra's single 
-# source shortest path algorithm. The program is 
-# for adjacency matrix representation of the graph 
+# single source shortest
+# path algorithm. The program
+# is for adjacency matrix
+# representation of the graph
 
-# Library for INT_MAX 
-import sys 
+from collections import defaultdict
 
-class Graph(): 
 
-	def __init__(self, vertices): 
-		self.V = vertices 
-		self.graph = [[0 for column in range(vertices)] 
-					for row in range(vertices)] 
+# Class to represent a graph
+class Graph:
+    # A utility function to find the
+    # vertex with minimum dist value, from
+    # the set of vertices still in queue
+    def minDistance(self, dist, queue):
+        # Initialize min value and min_index as -1
+        minimum = float("Inf")
+        min_index = -1
 
-	def printSolution(self, dist): 
-		print "Vertex tDistance from Source"
-		for node in range(self.V): 
-			print node, "t", dist[node] 
+        # from the dist array,pick one which
+        # has min value and is till in queue
+        for i in range(len(dist)):
+            if dist[i] < minimum and i in queue:
+                minimum = dist[i]
+                min_index = i
+        return min_index
 
-	# A utility function to find the vertex with 
-	# minimum distance value, from the set of vertices 
-	# not yet included in shortest path tree 
-	def minDistance(self, dist, sptSet): 
 
-		# Initilaize minimum distance for next node 
-		min = sys.maxint 
+        # Function to print shortest path
 
-		# Search not nearest vertex not in the 
-		# shortest path tree 
-		for v in range(self.V): 
-			if dist[v] < min and sptSet[v] == False: 
-				min = dist[v] 
-				min_index = v 
+    # from source to j
+    # using parent array
+    def printPath(self, parent, j):
 
-		return min_index 
+        # Base Case : If j is source
+        if parent[j] == -1:
+            print(j)
+            return
+        self.printPath(parent, parent[j])
+        print(j)
 
-	# Funtion that implements Dijkstra's single source 
-	# shortest path algorithm for a graph represented 
-	# using adjacency matrix representation 
-	def dijkstra(self, src): 
+    def getPath(self, parent, j, path):
+        if parent[j] == -1:
+            path.append(j)
+            return
+        self.getPath(parent, parent[j], path)
+        path.append(j)
+        return path
+        # A utility function to print
 
-		dist = [sys.maxint] * self.V 
-		dist[src] = 0
-		sptSet = [False] * self.V 
+    # the constructed distance
+    # array
+    def printSolution(self, dist, parent):
+        src = 0
+        print("Vertex \t\tDistance from Source\tPath")
+        for i in range(1, len(dist)):
+            print("\n%d --> %d \t\t%d \t\t\t\t\t" % (src, i, dist[i])),
+            self.printPath(parent, i)
 
-		for cout in range(self.V): 
+    '''Function that implements Dijkstra's single source shortest path 
+    algorithm for a graph represented using adjacency matrix 
+    representation'''
 
-			# Pick the minimum distance vertex from 
-			# the set of vertices not yet processed. 
-			# u is always equal to src in first iteration 
-			u = self.minDistance(dist, sptSet) 
+    def dijkstra(self, graph, src):
 
-			# Put the minimum distance vertex in the 
-			# shotest path tree 
-			sptSet[u] = True
+        row = len(graph)
+        col = len(graph[0])
 
-			# Update dist value of the adjacent vertices 
-			# of the picked vertex only if the current 
-			# distance is greater than new distance and 
-			# the vertex in not in the shotest path tree 
-			for v in range(self.V): 
-				if self.graph[u][v] > 0 and sptSet[v] == False and dist[v] > dist[u] + self.graph[u][v]: 
-						dist[v] = dist[u] + self.graph[u][v] 
+        # The output array. dist[i] will hold
+        # the shortest distance from src to i
+        # Initialize all distances as INFINITE
+        dist = [float("Inf")] * row
 
-		self.printSolution(dist) 
+        # Parent array to store
+        # shortest path tree
+        parent = [-1] * row
 
-# Driver program 
-g = Graph(9) 
-g.graph = [[0, 4, 0, 0, 0, 0, 0, 8, 0], 
-		[4, 0, 8, 0, 0, 0, 0, 11, 0], 
-		[0, 8, 0, 7, 0, 4, 0, 0, 2], 
-		[0, 0, 7, 0, 9, 14, 0, 0, 0], 
-		[0, 0, 0, 9, 0, 10, 0, 0, 0], 
-		[0, 0, 4, 14, 10, 0, 2, 0, 0], 
-		[0, 0, 0, 0, 0, 2, 0, 1, 6], 
-		[8, 11, 0, 0, 0, 0, 1, 0, 7], 
-		[0, 0, 2, 0, 0, 0, 6, 7, 0] 
-		]; 
+        # Distance of source vertex
+        # from itself is always 0
+        dist[src] = 0
 
-g.dijkstra(0); 
+        # Add all vertices in queue
+        queue = []
+        for i in range(row):
+            queue.append(i)
 
-# This code is contributed by Divyanshu Mehta 
+            # Find shortest path for all vertices
+        while queue:
+
+            # Pick the minimum dist vertex
+            # from the set of vertices
+            # still in queue
+            u = self.minDistance(dist, queue)
+
+            # remove min element
+            queue.remove(u)
+
+            # Update dist value and parent
+            # index of the adjacent vertices of
+            # the picked vertex. Consider only
+            # those vertices which are still in
+            # queue
+            for i in range(col):
+                '''Update dist[i] only if it is in queue, there is 
+                an edge from u to i, and total weight of path from 
+                src to i through u is smaller than current value of 
+                dist[i]'''
+                if graph[u][i] and i in queue:
+                    if dist[u] + graph[u][i] < dist[i]:
+                        dist[i] = dist[u] + graph[u][i]
+                        parent[i] = u
+
+
+                        # print the constructed distance array
+
+        # self.printSolution(dist, parent)
+
+        output = []
+        output.append(dist[1:])
+        for i in range(1, len(dist)):
+            output.append(self.getPath(parent, i, []))
+
+        return output
+
+
+g = Graph()
+
+graph = [[0, 4, 0, 0, 0, 0, 0, 8, 0],
+         [4, 0, 8, 0, 0, 0, 0, 11, 0],
+         [0, 8, 0, 7, 0, 4, 0, 0, 2],
+         [0, 0, 7, 0, 9, 14, 0, 0, 0],
+         [0, 0, 0, 9, 0, 10, 0, 0, 0],
+         [0, 0, 4, 14, 10, 0, 2, 0, 0],
+         [0, 0, 0, 0, 0, 2, 0, 1, 6],
+         [8, 11, 0, 0, 0, 0, 1, 0, 7],
+         [0, 0, 2, 0, 0, 0, 6, 7, 0]
+         ]
+
+# Print the solution
+print(g.dijkstra(graph, 0))
+
+
+# This code is contributed by Neelam Yadav
+

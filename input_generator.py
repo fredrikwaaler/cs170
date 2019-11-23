@@ -79,17 +79,17 @@ class GraphCreator:
                                 if adjacency_matrix[v][n] > adjacency_matrix[v][k] + adjacency_matrix[k][n]:
                                     diff = adjacency_matrix[v][n] - (adjacency_matrix[v][k] + adjacency_matrix[k][n])
                                     if (v, k) not in altered:
-                                        new_weight = random_gen.randint(diff, 10)
+                                        new_weight = adjacency_matrix[v][k] + random_gen.randint(diff, 10 - adjacency_matrix[v][k])
                                         adjacency_matrix[v][k] = new_weight
                                         adjacency_matrix[k][v] = new_weight
                                         altered.extend([(v, k), (k, v)])
                                     elif (k, n) not in altered:
-                                        new_weight = random_gen.randint(diff, 10)
+                                        new_weight = adjacency_matrix[k][n] + random_gen.randint(diff, 10 - adjacency_matrix[k][n])
                                         adjacency_matrix[k][n] = new_weight
                                         adjacency_matrix[n][k] = new_weight
                                         altered.extend([(k, n), (n, k)])
                                     elif (v, n) not in altered:
-                                        new_weight = random_gen.randint(1, diff)
+                                        new_weight = adjacency_matrix[v][n] + random_gen.randint(1, diff)
                                         adjacency_matrix[n][v] = new_weight
                                         adjacency_matrix[v][n] = new_weight
                                         altered.extend([(v, n), (n, v)])
@@ -106,7 +106,7 @@ class GraphCreator:
         matrix = self.generate_adjacency_matrix(num_loc)
         self.triangulate_graph(matrix)
 
-        with open("{}.out".format(num_loc), 'w') as writer:
+        with open("{}.in".format(num_loc), 'w') as writer:
             writer.write(str(num_loc))
             writer.write("\n")
             writer.write(str(num_homes))
@@ -120,7 +120,6 @@ class GraphCreator:
             for node in matrix:
                 writer.writelines(["%s " % dist for dist in node])
                 writer.write("\n")
-
 
         writer.close()
 
@@ -150,7 +149,20 @@ generator.generate_input_file(100)
 generator.generate_input_file(200)
 
 
+def output_generator(ad_mat, locations, home_index):
+    visited = [0]  # Start at node 0
+    home_drops = []
+    while len(visited) != len(ad_mat):
+        remaining = []
+        for node in range(len(ad_mat)):
+            if node not in visited:
+                remaining += node
+        best = remaining[0]
+        for j in remaining[1:]:
+            if dijkstra(ad_mat, visited[-1], j) > remaining(ad_mat, visited[-1], best):
+                best = j
+        visited.append(best)
+        if best in home_index:
+            home_drops.append("{} {}".format(locations[best], locations[best]))
 
-
-
-
+    # Route from end node to start node
