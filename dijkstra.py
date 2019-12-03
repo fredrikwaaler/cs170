@@ -19,7 +19,7 @@ class Graph:
         # from the dist array,pick one which
         # has min value and is till in queue
         for i in range(len(dist)):
-            if dist[i] < minimum and i in queue:
+            if dist[i] <= minimum and i in queue:
                 minimum = dist[i]
                 min_index = i
         return min_index
@@ -52,7 +52,7 @@ class Graph:
     def printSolution(self, dist, parent):
         src = 0
         print("Vertex \t\tDistance from Source\tPath")
-        for i in range(1, len(dist)):
+        for i in range(0, len(dist)):
             print("\n%d --> %d \t\t%d \t\t\t\t\t" % (src, i, dist[i])),
             self.printPath(parent, i)
 
@@ -112,11 +112,9 @@ class Graph:
 
                         # print the constructed distance array
 
-        # self.printSolution(dist, parent)
-
         output = []
-        output.append(dist[1:])
-        for i in range(1, len(dist)):
+        output.append(dist)
+        for i in range(0, len(dist)):
             output.append(self.getPath(parent, i, []))
 
         return output
@@ -136,7 +134,7 @@ graph = [[0, 4, 0, 0, 0, 0, 0, 8, 0],
          ]
 
 # Print the solution
-print(g.dijkstra(graph, 0))
+# print(g.dijkstra(graph, 1))
 
 
 # This code is contributed by Neelam Yadav
