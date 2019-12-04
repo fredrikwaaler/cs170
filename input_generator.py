@@ -2,31 +2,81 @@ import random
 from string import ascii_letters
 from dijkstra import Graph
 
+
 TEST_MODE = True
 random_gen = random.Random()
 
 
 class GraphCreator:
 
+    triangulated = 0
+
     def __init__(self, test_mode=False):
         self.test_mode = test_mode
 
     @staticmethod
-    def generate_adjacency_matrix(num_loc):
+    def get_matrix_from_file(input_file):
+        with open(input_file) as file:
+            lines = file.read().splitlines()
+
+        locations = lines[2].split()
+        drop_of = lines[1]
+        homes = lines[3].split()
+
+        home_indexes = []
+        for i in range(len(locations)):
+            if locations[i] in homes:
+                home_indexes.append(i)
+
+        # Create matrix from file
+        matrix = []
+        for i in lines[5:]:
+            matrix.append(i.split())
+
+        for i in range(len(matrix)):
+            for j in range(len(matrix)):
+                if matrix[i][j] == 'x':
+                    matrix[i][j] = 0
+                else:
+                    matrix[i][j] = int(matrix[i][j])
+
+        return matrix
+
+    @staticmethod
+    def get_locations_from_file(input_file):
+        with open(input_file) as file:
+            lines = file.read().splitlines()
+
+        return lines[2].split()
+
+    @staticmethod
+    def generate_adjacency_matrix(num_loc, x=1):
+        """
+        By default, it will assume that the null-entries in the matrix are represented by the
+        string 'x'. However, if this is not the case, set the x-parameter to something different than 1, and
+        it will assume your null-entries are marked as int(0).
+        :param num_loc:
+        :param x:
+        :return:
+        """
+        if x == 1:
+            x = 'x'
+        else:
+            x = 0
         adjacency_matrix = []
         # First generate with all distances as one:
         for loc_num in range(num_loc):
             # Initialize node with no incident edges
-            adjacency = ['x' for c in range(num_loc)]
+            adjacency = [x for c in range(num_loc)]
             # Add already existing edges
             for prev_adjacency in range(loc_num):
-                if adjacency_matrix[prev_adjacency][loc_num] != 'x':
+                if adjacency_matrix[prev_adjacency][loc_num] != x:
                     adjacency[prev_adjacency] = adjacency_matrix[prev_adjacency][loc_num]
 
             # Count number of incident edges:
             edge_num = 0
             for node in adjacency:
-                if node != 'x':
+                if node != x:
                     edge_num += 1
 
             # Aiming for an average of 1 to (num_loc / 8) edges incident for every node.
@@ -46,7 +96,7 @@ class GraphCreator:
             # Always add to one previous node, so that we ensure graph is connected:
             if loc_num != 0:
                 rand_prev = random_gen.randint(0, loc_num-1)
-                if adjacency[rand_prev] == 'x':
+                if adjacency[rand_prev] == x:
                     adjacency[rand_prev] = random_gen.randint(1, 10)
                     new_edges -= 1
 
@@ -59,8 +109,7 @@ class GraphCreator:
 
         for a in range(len(adjacency_matrix)):
             for i in range(num_loc):
-                if adjacency_matrix[a][i] != 'x':
-                    adjacency_matrix[i][a] = adjacency_matrix[a][i]
+                adjacency_matrix[i][a] = adjacency_matrix[a][i]
 
         return adjacency_matrix
 
@@ -74,7 +123,13 @@ class GraphCreator:
 
     # Keep track of altered edges to makes sure that we don't overwrite any previous progress.
     @staticmethod
-    def triangulate_graph(adjacency_matrix):
+    def triangulate_graph(adjacency_matrix, x=1):
+        """
+        Enforces the triangle inequality on the nodes represented in an adjacency matrix.
+        :param adjacency_matrix:
+        :param x:
+        :return:
+        """
         altered = []
         for v in range(len(adjacency_matrix)):
             # If there is an edge from v to n:
@@ -88,21 +143,26 @@ class GraphCreator:
                         else:
                             # If there is an edge from n to k, and from k to v
                             if adjacency_matrix[n][k] != 'x' and adjacency_matrix[k][v] != 'x':
-                                # Make sure that the triangle inequality w(v,n) < w(v,k) + w(k,n)
+                                # Make sure that the triangle inequality w(v,n) < w(v,k) + w(k,n) # COULD BE BECAUSE OF ADJMAT NOT SYMMETRIC
                                 if adjacency_matrix[v][n] > adjacency_matrix[v][k] + adjacency_matrix[k][n]:
-                                    diff = adjacency_matrix[v][n] - (adjacency_matrix[v][k] + adjacency_matrix[k][n])
                                     if (v, k) not in altered:
-                                        new_weight = adjacency_matrix[v][k] + random_gen.randint(diff, 10 - adjacency_matrix[v][k])
+                                        new_weight = random_gen.randint(abs(adjacency_matrix[n][v] - adjacency_matrix[k][n]), adjacency_matrix[k][n] + adjacency_matrix[v][n] )
+                                        if new_weight == 0:
+                                            new_weight = 1
                                         adjacency_matrix[v][k] = new_weight
                                         adjacency_matrix[k][v] = new_weight
                                         altered.extend([(v, k), (k, v)])
                                     elif (k, n) not in altered:
-                                        new_weight = adjacency_matrix[k][n] + random_gen.randint(diff, 10 - adjacency_matrix[k][n])
+                                        new_weight = random_gen.randint(abs(adjacency_matrix[k][v] - adjacency_matrix[v][n]) , adjacency_matrix[k][v] + adjacency_matrix[v][n] )
+                                        if new_weight == 0:
+                                            new_weight = 1
                                         adjacency_matrix[k][n] = new_weight
                                         adjacency_matrix[n][k] = new_weight
                                         altered.extend([(k, n), (n, k)])
                                     elif (v, n) not in altered:
-                                        new_weight = adjacency_matrix[v][n] + random_gen.randint(1, diff)
+                                        new_weight = random_gen.randint(abs(adjacency_matrix[k][v] - adjacency_matrix[k][n]) , adjacency_matrix[k][n] + adjacency_matrix[v][k] )
+                                        if new_weight == 0:
+                                            new_weight = 1
                                         adjacency_matrix[n][v] = new_weight
                                         adjacency_matrix[v][n] = new_weight
                                         altered.extend([(v, n), (n, v)])
@@ -156,10 +216,6 @@ class GraphCreator:
         return homes
 
 
-generator = GraphCreator()
-#generator.generate_input_file(50)
-#generator.generate_input_file(100)
-#generator.generate_input_file(200)
 
 
 def output_path(ad_mat):
@@ -185,8 +241,6 @@ def output_path(ad_mat):
 
     return path
 
-
-
 def output_generator(input_file):
     with open(input_file) as file:
         lines = file.read().splitlines()
@@ -204,8 +258,6 @@ def output_generator(input_file):
     matrix = []
     for i in lines[5:]:
         matrix.append(i.split())
-
-    print(matrix)
 
     for i in range(len(matrix)):
         for j in range(len(matrix)):
@@ -230,8 +282,13 @@ def output_generator(input_file):
     file.close()
 
 
+if __name__ == 'main':
+    generator = GraphCreator()
+    generator.generate_input_file(50)
+    generator.generate_input_file(100)
+    generator.generate_input_file(200)
 
-output_generator('50.in')
-output_generator('100.in')
-output_generator('200.in')
+    output_generator('50.in')
+    output_generator('100.in')
+    output_generator('200.in')
 
