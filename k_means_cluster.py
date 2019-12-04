@@ -15,7 +15,7 @@ f.readFile()
 graph = f.getGraph()
 homes = f.getHomes()
 k = 5 #Will work on approximation later
-first_center = 31 #random.randint(0,50)
+first_center = 9 #random.randint(0,50 )#31 #test at 9
 
 class K_Means_Cluster():
 
@@ -104,7 +104,8 @@ class K_Means_Cluster():
     def verify_clustering(self, distances, centers_dict, homes, k):
         # If a cluster is of size one and the center is not a location, then change center to home
         # If a cluster is of size zero, then replace that one center.
-        for i in (centers_dict.keys()):
+        print(centers_dict)
+        for i in (centers_dict):
             if len(centers_dict[i]) == 1:
                 if i not in homes:
                     home = centers_dict[i][0]
