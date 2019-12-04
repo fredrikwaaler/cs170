@@ -15,7 +15,7 @@ f.readFile()
 graph = f.getGraph()
 homes = f.getHomes()
 k = 5 #Will work on approximation later
-first_center = 28 #random.randint(0,50)
+first_center = random.randint(0,50)
 
 class K_Means_Cluster():
 
