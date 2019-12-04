@@ -15,7 +15,7 @@ f.readFile()
 graph = f.getGraph()
 homes = f.getHomes()
 k = 5 #Will work on approximation later
-first_center = random.randint(0,50)
+first_center = 31 #random.randint(0,50)
 
 class K_Means_Cluster():
 
@@ -107,8 +107,9 @@ class K_Means_Cluster():
         for i in (centers_dict.keys()):
             if len(centers_dict[i]) == 1:
                 if i not in homes:
+                    home = centers_dict[i][0]
                     centers_dict.pop(i)
-                    centers_dict.update(i = i)
+                    centers_dict[home] = home
             if len(centers_dict[i]) == 0:
                 print("EMPTY DICT")
                 # Call k_starting centers and make sure not to choose faulty center by changing its distance to any node as -1.
@@ -176,7 +177,8 @@ class K_Means_Cluster():
         new_centers = self.improved_centers(centers_dict, distances, graph, k_centers)
         # Compute total sum of distances between centers and corresponding cluster points
         new_totalsum = self.total_dist(centers_dict, distances)
-        print(new_totalsum)
+        if debug_k_means:
+            print(new_totalsum)
         return self.k_means_clustering(centers_dict, curr_totalsum, new_totalsum, distances, homes, i + 1, k, epsilon, graph,
                                   new_centers)
 
@@ -199,6 +201,8 @@ print("new center locations: ", new_centers)
 totaldistance = k_means.total_dist(centers_dict, distances)
 print("Total sum of distances between centers and corresponding cluster points: ",totaldistance)
 
-#epsilon = 10
-#centers_dict = k_means.k_means_clustering(None, 0, 1000, distances, homes, 1, k, epsilon, graph, [])
-#centers_dict
+print("\n\nTesting for convergence: ")
+print("first_center: ",first_center)
+epsilon = 10
+centers_dict = k_means.k_means_clustering(None, 0, 1000, distances, homes, 1, k, epsilon, graph, [])
+print("\nfinal clusters once sums converged: ", centers_dict)
