@@ -8,7 +8,11 @@ class File:
         self.graph = []
         self.homes = []
 
-    # return adjacency graph
+    '''
+        Extract graph from input file
+        Replace all 'x' with 0
+        Generate list of home indices
+    '''
     def readFile(self):
         # read file, change every x to 0, save to graph
         count = 0
