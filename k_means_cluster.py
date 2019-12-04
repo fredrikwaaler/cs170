@@ -3,8 +3,12 @@ import copy
 from dijkstra import Graph
 from read_file import File
 
-debug = True
+# DRAFT:
+
+# debug values
+debug = False
 debug_startingk = False
+debug_k_means = True
 
 f = File("inputs/50.in")
 f.readFile()
@@ -147,15 +151,45 @@ def total_dist(centers_dict, distances):
     return total_sum
 
 
+def k_means_clustering(centers_dict, prev_totalsum, curr_totalsum, distances, homes, i, k, epsilon, graph, k_centers):
+    if debug_k_means:
+        print("prev_totalsum: ", prev_totalsum)
+        print("curr_totalsum: ", curr_totalsum)
+    if abs(prev_totalsum - curr_totalsum) < epsilon:
+        return centers_dict
+    if debug_k_means:
+        print("centers_dict: ", centers_dict)
+    # Generate initial k centers
+    center = [0 for i in range(k)]
+    center[0] = first_center
 
+    if i == 1:
+        k_centers = k_starting_centers(copy.deepcopy(distances), distances, center, 0, k)
+
+    # Cluster homes wrt inital centers
+    centers_dict = clustering(k_centers, distances, homes, k, True)
+
+    # Generate improved centers
+    new_centers = improved_centers(centers_dict, distances, graph, k_centers)
+    # Compute total sum of distances between centers and corresponding cluster points
+    new_totalsum = total_dist(centers_dict, distances)
+    print(new_totalsum)
+    return k_means_clustering(centers_dict, curr_totalsum, new_totalsum, distances, homes, i + 1, k, epsilon, graph,
+                              new_centers)
+
+# Testing:
 distances = get_distance_list_fast(graph)
 center = [0]#[0 for i in range(k)]
 center[0] = first_center
 k_start_centers = k_starting_centers(copy.deepcopy(distances), distances, center, 0, k)
-print(k_start_centers)
+print("starting k centers: ", k_start_centers)
 centers_dict = clustering(k_start_centers, distances, homes, k, True)
-print(centers_dict)
+print("first set of clusters: ", centers_dict)
 new_centers = improved_centers(centers_dict, distances, graph, k_start_centers)
-print("new_centers: ", new_centers)
+print("new center locations: ", new_centers)
 totaldistance = total_dist(centers_dict, distances)
-print("totaldistance: ",totaldistance)
+print("Total sum of distances between centers and corresponding cluster points: ",totaldistance)
+
+#epsilon = 10
+#centers_dict = k_means_clustering(None, 0, 1000, distances, homes, 1, k, epsilon, graph, [])
+#centers_dict
