@@ -107,14 +107,13 @@ class K_Means_Cluster():
         for i in (centers_dict.keys()):
             if len(centers_dict[i]) == 1:
                 if i not in homes:
-                    print(i)
                     centers_dict.pop(i)
                     centers_dict.update(i = i)
             if len(centers_dict[i]) == 0:
                 print("EMPTY DICT")
                 # Call k_starting centers and make sure not to choose faulty center by changing its distance to any node as -1.
                 # Then rerun clustering()
-                dist_copy = copy.deepcopy(distances[i])
+                dist_copy = copy.deepcopy(distances)
                 dist_copy[i] = [-1 for i in range(len(distances[i]))]
                 k_start_centers = self.k_starting_centers(dist_copy, distances, [0 for i in range(k)], 0, k)
                 centers_dict = self.clustering(k_start_centers, distances, homes, k, True)
@@ -201,5 +200,5 @@ totaldistance = k_means.total_dist(centers_dict, distances)
 print("Total sum of distances between centers and corresponding cluster points: ",totaldistance)
 
 #epsilon = 10
-#centers_dict = k_means_clustering(None, 0, 1000, distances, homes, 1, k, epsilon, graph, [])
+#centers_dict = k_means.k_means_clustering(None, 0, 1000, distances, homes, 1, k, epsilon, graph, [])
 #centers_dict
