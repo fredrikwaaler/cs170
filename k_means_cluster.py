@@ -13,24 +13,19 @@ debug = False
 debug_startingk = False
 debug_k_medians = True
 
-#f = File("inputs/200.in")
-#f.readFile()
-#graph = f.getGraph()
-#homes = f.getHomes()
-#print("homes: ",len(homes))
-k = 5 #Will work on approximation later
-first_center = random.randint(0,49)
-
 class K_Medians_Cluster():
 
-    def __init__(self):
+    def __init__(self, homes, graph):
         # key: total sum distance
         # value: centers for that total sum distance
         self.sumdist_cent_hist = {}
 
         # list of total sum distances
         self.sumdist_hist = []
-        self.homes = []
+        self.homes = homes
+        self.graph = graph
+        self.first_center = random.randint(0,49)#len(self.graph)-1)
+        self.distances = self.get_distance_list_fast(self.graph)
 
 
     """
@@ -49,7 +44,7 @@ class K_Medians_Cluster():
         for i in range(len(adj_mat)):
             for j in range(len(adj_mat)):
                 distances[i][j] = dijkstras[i][j]
-
+        print(distances)
         return distances
 
 
@@ -63,7 +58,9 @@ class K_Medians_Cluster():
             k: approximated k value for creating k clusters
     :return: list of center location indices
     '''
-    def k_starting_centers(self, distances_copy, distances, center_arr, i, k):
+    def k_starting_centers(self, distances_copy, center_arr, i, k):
+
+        first_center = random.randint(0, 49)
 
         if i == (k-1):
             return center_arr
@@ -72,9 +69,9 @@ class K_Medians_Cluster():
         # else:
         if debug_startingk:
             print("center_arr: ", center_arr)
-        cluster_dict = self.clustering(center_arr, distances, homes, k, False)
+        cluster_dict = self.clustering(center_arr, k, False)
         if debug_startingk:
-            print("size of home: ", len(homes))
+            print("size of home: ", len(self.homes))
             print("size: ", len(cluster_dict[center_arr[0]]))
             print("starting cluster_dict: ", cluster_dict)
         farthest_loc = center_arr[0]
@@ -92,31 +89,31 @@ class K_Medians_Cluster():
         if farthest_loc not in center_arr:
             center_arr.append(farthest_loc)
             # center_arr[i+1] = farthest_loc
-            return self.k_starting_centers(distances_copy, distances, center_arr, i + 1, k)
+            return self.k_starting_centers(distances_copy, center_arr, i + 1, k)
         else:
             distances_copy[center_arr[i]][
                 farthest_loc] = -1  # To guarantee that this point will not be the max another time
-            return self.k_starting_centers(distances_copy, distances, center_arr, i, k)
+            return self.k_starting_centers(distances_copy, center_arr, i, k)
 
 
-    def clustering(self, k_centers, distances, homes, k, verify):
+    def clustering(self, k_centers, k, verify):
         if debug:
             print("clustering")
         centers_dict = {key: [] for key in k_centers}
 
-        for i in homes: #we only want to assign homes to centers #(len(graph)):
+        for i in self.homes: #we only want to assign homes to centers #(len(graph)):
             if i not in k_centers:
-                center_dist = [distances[i][j] for j in k_centers]
+                center_dist = [self.distances[i][j] for j in k_centers]
                 center_index = center_dist.index(min(center_dist))
                 center_for_loc = k_centers[center_index]
                 if center_for_loc in centers_dict.keys():
                     centers_dict.update(center_for_loc = centers_dict[center_for_loc].append(i))
         centers_dict.pop('center_for_loc', None)
         if verify:
-            centers_dict = self.verify_clustering(distances, centers_dict, homes, k)
+            centers_dict = self.verify_clustering(centers_dict, k)
         return centers_dict
 
-    def verify_clustering(self, distances, centers_dict, homes, k):
+    def verify_clustering(self, centers_dict, k):
         # If a cluster is of size one and the center is not a location, then change center to home
         # If a cluster is of size zero, then replace that one center.
         if debug:
@@ -128,7 +125,7 @@ class K_Medians_Cluster():
             if debug:
                 print("i (the key error): ", i)
             if len(centers_dict[i]) == 1:
-                if i not in homes:
+                if i not in self.homes:
                     home = centers_dict[i][0]
                     replace_key[i] = [home]
             if len(centers_dict[i]) == 0:
@@ -139,7 +136,7 @@ class K_Medians_Cluster():
                 and get a new set of k centers (bc clearly this is not a good set of centers), but that caused so many errors. 
                 
                 '''
-                if i not in homes:
+                if i not in self.homes:
                     print("Here 2")
                     remove_key[i] = []
                 else:
@@ -166,14 +163,13 @@ class K_Medians_Cluster():
 
         return centers_dict
 
-    def improved_centers(self, centers_dict, distances, graph):
+    def improved_centers(self, centers_dict):
         # Compute average distance between center and each cluster point for each cluster
         '''
         CHANGES TO MAKE:
         compute sum of distance to all points in the cluster to every location.
         One with the min sum is the new center.
         :param centers_dict:
-        :param distances:
         :param graph:
         :param k_centers:
         :return:
@@ -188,11 +184,11 @@ class K_Medians_Cluster():
 
         new_centers = []
         for center in centers_dict:
-            loc_sumdist = [0 for i in range(len(graph))]
-            for loc in range(len(graph)):
+            loc_sumdist = [0 for i in range(len(self.graph))]
+            for loc in range(len(self.graph)):
                 sumdist = 0
                 for cluster_p in centers_dict[center]:
-                    sumdist += distances[loc][cluster_p]
+                    sumdist += self.distances[loc][cluster_p]
                 loc_sumdist[loc] = sumdist
             new_centers.append(loc_sumdist.index(min(loc_sumdist)))
 
@@ -221,17 +217,17 @@ class K_Medians_Cluster():
 
         return new_centers
 
-    def total_dist(self, centers_dict, distances):
+    def total_dist(self, centers_dict):
         # To compute total sum of sum of distances of center to all of its cluster points
         total_sum = 0
         for center in centers_dict.keys():
             for cluster_p in centers_dict[center]:
-                total_sum += distances[center][cluster_p]
+                total_sum += self.distances[center][cluster_p]
         return total_sum
 
 
     # Quantifies the quality of the clusters
-    def silhouette_avg(self, distances, centers_dict):
+    def silhouette_avg(self, centers_dict):
 
         """
         Compute silhouette coefficient of each cluster.
@@ -252,10 +248,11 @@ class K_Medians_Cluster():
         aa = {}
         for center in centers_dict:
             ac  ={}
+            cluster_p_sum = 0
             for cluster_p1 in centers_dict[center]:
                 for cluster_p2 in centers_dict[center]:
                     if cluster_p1 != cluster_p2:
-                        cluster_p_sum += distances[cluster_p1][cluster_p2]
+                        cluster_p_sum += self.distances[cluster_p1][cluster_p2]
 
 
 
@@ -266,7 +263,7 @@ class K_Medians_Cluster():
             for cluster_p1 in centers_dict[center]:
                 for cluster_p2 in centers_dict[center]:
                     if cluster_p1 != cluster_p2:
-                        cluster_p_sum += distances[cluster_p1][cluster_p2]
+                        cluster_p_sum += self.distances[cluster_p1][cluster_p2]
             a.append(cluster_p_sum/(len(centers_dict[center])-1))
         '''
 
@@ -286,7 +283,7 @@ class K_Medians_Cluster():
                 for neighbor_center in centers_dict:
                     if center != neighbor_center:
                         for neighbor_p in centers_dict[neighbor_center]:
-                            neighbor_sum += distances[cluster_p][neighbor_p]
+                            neighbor_sum += self.distances[cluster_p][neighbor_p]
                 neighbor_mean = neighbor_sum/len(centers_dict[neighbor_center])
 
     # Once you compute the silhouette coefficient, get mean of all coeff of points for each cluster.
@@ -321,7 +318,7 @@ class K_Medians_Cluster():
 
 
 
-    def k_medians_clustering(self, centers_dict, prev_totalsum, curr_totalsum, distances, homes, i, k, epsilon, graph, k_centers):
+    def k_medians_clustering(self, centers_dict=None, prev_totalsum=0, curr_totalsum=math.inf, i=1, k=5, epsilon=0, k_centers=[]):
         if debug_k_medians:
             print("prev_totalsum: ", prev_totalsum)
             print("curr_totalsum: ", curr_totalsum)
@@ -353,31 +350,31 @@ class K_Medians_Cluster():
             print("centers_dict: ", centers_dict)
         # Generate initial k centers
         center = []
-        center.append(first_center)
+        center.append(self.first_center)
 
         if i == 1:
-            k_centers = self.k_starting_centers(copy.deepcopy(distances), distances, center, 0, k)
+            k_centers = self.k_starting_centers(copy.deepcopy(self.distances), center, 0, k)
 
         # Cluster homes wrt inital centers
-        centers_dict = self.clustering(k_centers, distances, homes, k, True)
+        centers_dict = self.clustering(k_centers, k, True)
 
         # Compute total sum of freshly computed distances between centers and corresponding cluster points
-        new_totalsum = self.total_dist(centers_dict, distances)
+        new_totalsum = self.total_dist(centers_dict)
+
 
         # Generate improved centers
-        new_centers = self.improved_centers(centers_dict, distances, graph)
+        new_centers = self.improved_centers(centers_dict)
 
         if debug_k_medians:
-            print(new_totalsum)
-        return self.k_medians_clustering(centers_dict, curr_totalsum, new_totalsum, distances, homes, i + 1, k, epsilon, graph,
-                                  new_centers)
+            print("new_total sum down here: ", new_totalsum)
+            print("curr totalsum down here: ", curr_totalsum)
+        return self.k_medians_clustering(centers_dict, curr_totalsum, new_totalsum, i + 1, k, epsilon, new_centers)
 
 
 
 
 """
 # Temporary:
-k_medians = K_Medians_Cluster()
 
 
 distances = k_medians.get_distance_list_fast(graph)
@@ -393,14 +390,26 @@ print("new center locations: ", new_centers)
 totaldistance = k_medians.total_dist(centers_dict, distances)
 print("Total sum of distances between centers and corresponding cluster points: ",totaldistance)
 
+
+f = File("inputs/10_50.in")
+f.readFile()
+graph = f.getGraph()
+homes = f.getHomes()
+print(len(graph))
+print(len(homes))
+
+#k = 5 #Will work on approximation later
+k_medians = K_Medians_Cluster(homes, graph)
+
 print("\n\nTesting for convergence: ")
-print("first_center: ",first_center)
+#print("first_center: ",first_center)
 epsilon = 0
-centers_dict = k_medians.k_medians_clustering(None, 0, math.inf, distances, homes, 1, k, epsilon, graph, [])
+centers_dict = k_medians.k_medians_clustering()#None, 0, math.inf, 1, k, epsilon, [])
 print("\nfinal clusters once sums converged: ", centers_dict)
 
 
 dict = {3:[1,2], 4:{3,4}, 5:[1]}
 print(type(dict.keys()))
 """
+
 
