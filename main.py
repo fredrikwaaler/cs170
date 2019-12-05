@@ -1,5 +1,7 @@
 import os
 
-if __name__ == "main":
-    for file in os.listdir("{}/inputs".format(os.curdir)):
+if __name__ == "__main__":
+    for file in os.listdir(os.getcwd() + '/inputs'):
         print(file)
+
+
