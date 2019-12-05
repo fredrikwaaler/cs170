@@ -16,8 +16,8 @@ f.readFile()
 graph = f.getGraph()
 homes = f.getHomes()
 print("homes: ",len(homes))
-k = 5 #Will work on approximation later
-first_center =  random.randint(0,50 )#31 #test at 9 # 33
+k = 20 #Will work on approximation later
+first_center = random.randint(0,49)#31 #test at 9 # 33
 
 class K_Medians_Cluster():
 
@@ -231,12 +231,11 @@ class K_Medians_Cluster():
             print("curr_totalsum: ", curr_totalsum)
 
         if i > 1:
+            # Checking archive if current total sum was already generated in the past
+            # (to avoid generating the same centers)
             if curr_totalsum in self.sumdist_hist:
                 if debug_k_medians:
-                    print("here again")
-                #print("new totalsum: ",new_totalsum)
-                #print(self.sumdist_hist)
-                #print("here2")
+                    print("Already saw this total sum in the past. Return best centers from archive.")
                 # return the centers of the minimum total sum distance generated
                 return self.sumdist_cent_hist[self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]]
             else:
@@ -248,6 +247,9 @@ class K_Medians_Cluster():
                 self.sumdist_hist.append(curr_totalsum)
                 self.sumdist_cent_hist[curr_totalsum] = centers_dict.keys()
 
+        # Setting a limit as the total sums converge
+        # Sometimes, totalsum may be greater than previous totalsum but that's okay.
+        # That is why we choose to set a limit rather checking if sums are increasing i.e. quality of center points are decreasing.
         if abs(prev_totalsum - curr_totalsum) < epsilon:
             return self.sumdist_cent_hist[self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]]
 
@@ -297,8 +299,8 @@ print("Total sum of distances between centers and corresponding cluster points: 
 '''
 print("\n\nTesting for convergence: ")
 print("first_center: ",first_center)
-epsilon = 6
-centers_dict = k_medians.k_medians_clustering(None, 0, 1000, distances, homes, 1, k, epsilon, graph, [])
+epsilon = 0
+centers_dict = k_medians.k_medians_clustering(None, 0, math.inf, distances, homes, 1, k, epsilon, graph, [])
 print("\nfinal clusters once sums converged: ", centers_dict)
 
 
