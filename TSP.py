@@ -15,6 +15,8 @@ from dijkstra import Graph
 from read_file import File
 from k_means_cluster import K_Medians_Cluster
 
+debug = False
+testing = False
 
 def tsp_approx(ad_mat):
     """
@@ -228,6 +230,7 @@ def algorithm(input_file, output_file):
     # Do some stuff to get the clusters
     # Cluster-centers should come from aprils funciton
     k_medians = K_Medians_Cluster(homes, mat)
+
     cluster_centers = k_medians.k_medians_clustering()
     #cluster_centers = [1, 5, 7, 14, 32]  # Should be aprils_output.keys()
 
@@ -254,7 +257,9 @@ def algorithm(input_file, output_file):
     distance_dict = get_distance_dict_fast(mat)
 
     # Calculate the distance for the path (FOR TESTING)
-    # print(calculate_path_distance(path_in_original, distance_dict))
+    if debug:
+        print("path distance: ",calculate_path_distance(path_in_original, distance_dict))
+        print("total sum: ", k_medians.get_min_sum())
 
 
 
@@ -296,8 +301,11 @@ def algorithm(input_file, output_file):
             file.write("{}\n".format(drop_off_string))
     file.close()
 
+    #if testing:
+    #    return {"totalsum": k_medians.get_min_sum(), "pathdistance":calculate_path_distance(path_in_original, distance_dict)}
 
 
 
 
-algorithm('inputs/10_50.in', 'outputs/10_50.out')
+#if testing:
+#    algorithm('inputs/10_50.in', 'outputs/10_50.out')
