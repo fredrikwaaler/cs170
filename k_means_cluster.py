@@ -13,13 +13,13 @@ debug = False
 debug_startingk = False
 debug_k_medians = True
 
-f = File("inputs/50.in")
+f = File("inputs/200.in")
 f.readFile()
 graph = f.getGraph()
 homes = f.getHomes()
 print("homes: ",len(homes))
 k = 5 #Will work on approximation later
-first_center = random.randint(0,49)#31 #test at 9 # 33
+first_center = random.randint(0,49)
 
 class K_Medians_Cluster():
 
@@ -227,6 +227,93 @@ class K_Medians_Cluster():
             for cluster_p in centers_dict[center]:
                 total_sum += distances[center][cluster_p]
         return total_sum
+
+
+    # Quantifies the quality of the clusters
+    def silhouette_avg(self, distances, centers_dict):
+
+        """
+        Compute silhouette coefficient of each cluster.
+        Take the average for the whole graph.
+
+        Define a(i) to be the mean distance of point (i) w.r.t to all the other points in the cluster its assigned.
+        (mean intra-cluster distance)
+        We can interpret a(i) as how well the point is assigned to the cluster. Smaller the value better the assignment.
+
+        Define b(i) to be the mean distance of point(i) w.r.t. to other points in its closet neighboring cluster.
+        (mean nearest_cluster distance)
+
+        s(i) = (b(i) - a(i))/max(b(i), a(i))
+        """
+
+        # Have a dictionary of dictionary:
+        # {Center: {cluster_p: mean_dist, clusterp_p: mean_dist .... }}
+        aa = {}
+        #for center in centers_dict:
+            #ac  ={}
+           # for cluster_p1 in centers_dict[center]:
+
+
+        '''
+        a = []
+        for center in centers_dict:
+            cluster_p_sum = 0
+            for cluster_p1 in centers_dict[center]:
+                for cluster_p2 in centers_dict[center]:
+                    if cluster_p1 != cluster_p2:
+                        cluster_p_sum += distances[cluster_p1][cluster_p2]
+            a.append(cluster_p_sum/(len(centers_dict[center])-1))
+        '''
+
+
+        b = []
+        # To compute b, compute mean distance between every cluster point to cluster points in other clusters
+        # The min mean distance is the closest neighboring cluster
+
+        # To compute b(i)
+        # For each cluster point:
+        # 1. Compute sum of distance from point to other points of different clusters
+        # 2. Compute mean of each sum
+        # 3. Choose neighboring cluster that yields min mean sum with cluster point to be closest neighbor
+        for center in centers_dict:
+            for cluster_p in centers_dict[center]:
+                neighbor_sum = 0
+                for neighbor_center in centers_dict:
+                    if center != neighbor_center:
+                        for neighbor_p in centers_dict[neighbor_center]:
+                            neighbor_sum += distances[cluster_p][neighbor_p]
+                neighbor_mean = neighbor_sum/len(centers_dict[neighbor_center])
+
+    # Once you compute the silhouette coefficient, get mean of all coeff of points for each cluster.
+    # Compute mean of those means to whole graph
+
+
+        """
+        # Locate closest neighboring cluster by finding closest neighboring center
+
+         closest_neighbors = {}
+        for center1 in centers_dict:
+            min_dist = math.inf
+            closest_center = center1
+            for center2 in centers_dict:
+                if center1 != center2:
+                    cent_dist = distances[center1][center2]
+                    if cent_dist < min_dist:
+                        min_dist = cent_dist
+                        closest_center = center2
+            closest_neighbors[center1] = closest_center
+
+        # Compute sum of distances for cluster point to cluster points in neighboring cluster
+        for center in centers_dict:
+            neighbor_distsum = 0
+            for cluster_p in centers_dict[center]:
+                for neighbor_p in centers_dict[closest_neighbors[center]]:
+                    neighbor_distsum += distances[cluster_p][neighbor_p]
+            b.append(neighbor_distsum/)
+        """
+
+
+
 
 
     def k_medians_clustering(self, centers_dict, prev_totalsum, curr_totalsum, distances, homes, i, k, epsilon, graph, k_centers):
