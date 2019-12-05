@@ -13,11 +13,11 @@ debug = False
 debug_startingk = False
 debug_k_medians = True
 
-f = File("inputs/200.in")
-f.readFile()
-graph = f.getGraph()
-homes = f.getHomes()
-print("homes: ",len(homes))
+#f = File("inputs/200.in")
+#f.readFile()
+#graph = f.getGraph()
+#homes = f.getHomes()
+#print("homes: ",len(homes))
 k = 5 #Will work on approximation later
 first_center = random.randint(0,49)
 
@@ -30,6 +30,7 @@ class K_Medians_Cluster():
 
         # list of total sum distances
         self.sumdist_hist = []
+        self.homes = []
 
 
     """
@@ -374,13 +375,13 @@ class K_Medians_Cluster():
 
 
 
-
+"""
 # Temporary:
 k_medians = K_Medians_Cluster()
 
 
 distances = k_medians.get_distance_list_fast(graph)
-'''
+
 center = [0]#[0 for i in range(k)]
 center[0] = first_center
 k_start_centers = k_medians.k_starting_centers(copy.deepcopy(distances), distances, center, 0, k)
@@ -391,7 +392,7 @@ new_centers = k_medians.improved_centers(centers_dict, distances, graph)
 print("new center locations: ", new_centers)
 totaldistance = k_medians.total_dist(centers_dict, distances)
 print("Total sum of distances between centers and corresponding cluster points: ",totaldistance)
-'''
+
 print("\n\nTesting for convergence: ")
 print("first_center: ",first_center)
 epsilon = 0
@@ -401,4 +402,5 @@ print("\nfinal clusters once sums converged: ", centers_dict)
 
 dict = {3:[1,2], 4:{3,4}, 5:[1]}
 print(type(dict.keys()))
+"""
 

@@ -7,6 +7,7 @@
 # Then the function should return a new graph containing only those clusters and the shortest paths
 # between them. Then you can give this to TSP to calculate the best route between the clusters.
 
+import math
 import tspy
 from tspy.solvers import TwoOpt_solver
 from input_generator import GraphCreator
@@ -198,11 +199,14 @@ def algorithm(input_file, output_file):
     file = File(input_file)
     file.readFile()
     homes = file.getHomes()
+    graph = file.getGraph()
     start_loc = 0
 
     # Do some stuff to get the clusters
     # Cluster-centers should come from aprils funciton
-    cluster_centers = [1, 5, 7, 14, 44, 32]  # Should be aprils_output.keys()
+    k_medians = K_Medians_Cluster()
+    cluster_centers = k_medians.k_medians_clustering(None, 0, math.inf, k_medians.get_distance_list_fast(mat), homes, 1, 5, 0, mat, [])
+    #cluster_centers = [1, 5, 7, 14, 44, 32]  # Should be aprils_output.keys()
 
     # Add starting location to cluster centers so that it is included in our path
     if start_loc not in cluster_centers:
