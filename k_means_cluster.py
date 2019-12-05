@@ -1,3 +1,5 @@
+# April Shin
+
 import random
 import copy
 import math
@@ -16,7 +18,7 @@ f.readFile()
 graph = f.getGraph()
 homes = f.getHomes()
 print("homes: ",len(homes))
-k = 20 #Will work on approximation later
+k = 5 #Will work on approximation later
 first_center = random.randint(0,49)#31 #test at 9 # 33
 
 class K_Medians_Cluster():
@@ -25,6 +27,8 @@ class K_Medians_Cluster():
         # key: total sum distance
         # value: centers for that total sum distance
         self.sumdist_cent_hist = {}
+
+        # list of total sum distances
         self.sumdist_hist = []
 
 
@@ -249,7 +253,7 @@ class K_Medians_Cluster():
 
         # Setting a limit as the total sums converge
         # Sometimes, totalsum may be greater than previous totalsum but that's okay.
-        # That is why we choose to set a limit rather checking if sums are increasing i.e. quality of center points are decreasing.
+        #\That is why we choose to set a limit rather checking if sums are increasing i.e. quality of center points are decreasing.
         if abs(prev_totalsum - curr_totalsum) < epsilon:
             return self.sumdist_cent_hist[self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]]
 
