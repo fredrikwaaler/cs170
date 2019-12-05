@@ -5,6 +5,11 @@
 
 from collections import defaultdict
 
+"""
+This code has been retrieved from https://www.geeksforgeeks.org/printing-paths-dijkstras-shortest-path-algorithm/.
+Slight modifications has been made to make it better fit our purpose. 
+"""
+
 
 # Class to represent a graph
 class Graph:
@@ -119,7 +124,7 @@ class Graph:
 
         return output
 
-
+"""
 g = Graph()
 
 graph = [[0, 4, 0, 0, 0, 0, 0, 8, 0],
@@ -139,3 +144,4 @@ graph = [[0, 4, 0, 0, 0, 0, 0, 8, 0],
 
 # This code is contributed by Neelam Yadav
 
+"""

@@ -11,7 +11,7 @@ from read_file import File
 # debug values
 debug = False
 debug_startingk = False
-debug_k_medians = True
+debug_k_medians = False
 
 class K_Medians_Cluster():
 
@@ -24,7 +24,7 @@ class K_Medians_Cluster():
         self.sumdist_hist = []
         self.homes = homes
         self.graph = graph
-        self.first_center = random.randint(0,49)#len(self.graph)-1)
+        self.first_center = random.randint(0,len(self.graph)-1)
         self.distances = self.get_distance_list_fast(self.graph)
 
 
@@ -314,10 +314,17 @@ class K_Medians_Cluster():
         """
 
 
+    def get_min_sum(self):
+        return min(self.sumdist_hist)
 
+    def k_medians_clustering(self, centers_dict=None, prev_totalsum=0, curr_totalsum=math.inf, i=1, k=10, epsilon=0, k_centers=[]):
+        if len(self.graph) <= 50:
+            k = 7
+        elif len(self.graph) <= 100:
+            k = 13
+        elif len(self.graph) <= 200:
+            k = 20
 
-
-    def k_medians_clustering(self, centers_dict=None, prev_totalsum=0, curr_totalsum=math.inf, i=1, k=5, epsilon=0, k_centers=[]):
         if debug_k_medians:
             print("prev_totalsum: ", prev_totalsum)
             print("curr_totalsum: ", curr_totalsum)
@@ -329,6 +336,8 @@ class K_Medians_Cluster():
                 if debug_k_medians:
                     print("Already saw this total sum in the past. Return best centers from archive.")
                 # return the centers of the minimum total sum distance generated
+                if debug_k_medians:
+                    print("min sum: ", min(self.sumdist_hist))
 
                 return self.sumdist_cent_hist[self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]]
             else:
@@ -368,9 +377,9 @@ class K_Medians_Cluster():
         # Generate improved centers
         new_centers = self.improved_centers(centers_dict)
 
-        if debug_k_medians:
-            print("new_total sum down here: ", new_totalsum)
-            print("curr totalsum down here: ", curr_totalsum)
+        #if debug_k_medians:
+        #    print("new_total sum down here: ", new_totalsum)
+        #    print("curr totalsum down here: ", curr_totalsum)
         return self.k_medians_clustering(centers_dict, curr_totalsum, new_totalsum, i + 1, k, epsilon, new_centers)
 
 
@@ -394,7 +403,7 @@ totaldistance = k_medians.total_dist(centers_dict, distances)
 print("Total sum of distances between centers and corresponding cluster points: ",totaldistance)
 
 
-f = File("inputs/10_50.in")
+f = File("inputs/1_100.in")
 f.readFile()
 graph = f.getGraph()
 homes = f.getHomes()
@@ -415,6 +424,6 @@ print("\nfinal clusters once sums converged: ", centers_dict)
 
 dict = {3:[1,2], 4:{3,4}, 5:[1]}
 print(type(dict.keys()))
-"""
 
+"""
 

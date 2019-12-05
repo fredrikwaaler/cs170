@@ -15,6 +15,8 @@ from dijkstra import Graph
 from read_file import File
 from k_means_cluster import K_Medians_Cluster
 
+debug = False
+testing = False
 
 def tsp_approx(ad_mat):
     """
@@ -30,6 +32,12 @@ def tsp_approx(ad_mat):
 
 
 def calculate_cluster_distances(ad_mat, indexes):
+    """
+    Calculate the distances between the given list of indexes in the given adjacency matrix, using dijkstra.
+    :param ad_mat: The adjacency matrix representing the graph
+    :param indexes: The indexes you want to calculate distances for
+    :return: A dict {node: {other_node: distance}}
+    """
     distances = {}
     graph = Graph()
     # Each node maintains a list with nodes distances to itself
@@ -41,12 +49,18 @@ def calculate_cluster_distances(ad_mat, indexes):
             try:
                 distances[i][j] = graph.dijkstra(ad_mat, i)[0][j]
             except:
-                distances[i][j] = [i]
+                distances[i][j] = 0
 
     return distances
 
 
 def create_cluster_graph(cluster_matrix):
+    """
+    Given a dictionary like the on returned from "calculate_cluster_distances", i.e. {node: {other_node: distance}},
+    this function will create a graph (as adjacency matrix) with only those nodes.
+    :param cluster_matrix: The cluster matrix to create graph from
+    :return: The adjacency matrix of the new graph
+    """
     matrix = [['' for j in range(len(cluster_matrix))] for i in range(len(cluster_matrix))]
     row_numbers = {}
     row = 0
@@ -184,6 +198,13 @@ def convert_drop_off_plan_to_names(plan, locations):
 
 
 def calculate_path_distance(path, distances):
+    """
+    Calculates the distance traversed in a given path. Expects a distance-dict ({node: {other_node: distance}}) for the
+    graph containing the path.
+    :param path: The path to get distance for
+    :param distances: The distance-dict for graph
+    :return: The total distance traversed by the path
+    """
     total_distance = 0
     for i in range(len(path)-1):
         total_distance += distances[path[i]][path[i+1]]
@@ -191,6 +212,11 @@ def calculate_path_distance(path, distances):
 
 
 def algorithm(input_file, output_file):
+    """
+    Drive TA's Home Algorithm.
+    :param input_file: Input file
+    :param output_file: Output file
+    """
     # Generate the matrix from file
     mat = GraphCreator.get_matrix_from_file(input_file)
 
@@ -199,14 +225,14 @@ def algorithm(input_file, output_file):
     file = File(input_file)
     file.readFile()
     homes = file.getHomes()
-    graph = file.getGraph()
     start_loc = 0
 
     # Do some stuff to get the clusters
     # Cluster-centers should come from aprils funciton
-    k_medians = K_Medians_Cluster()
-    cluster_centers = k_medians.k_medians_clustering(None, 0, math.inf, k_medians.get_distance_list_fast(mat), homes, 1, 5, 0, mat, [])
-    #cluster_centers = [1, 5, 7, 14, 44, 32]  # Should be aprils_output.keys()
+    k_medians = K_Medians_Cluster(homes, mat)
+
+    cluster_centers = k_medians.k_medians_clustering()
+    #cluster_centers = [1, 5, 7, 14, 32]  # Should be aprils_output.keys()
 
     # Add starting location to cluster centers so that it is included in our path
     if start_loc not in cluster_centers:
@@ -231,7 +257,9 @@ def algorithm(input_file, output_file):
     distance_dict = get_distance_dict_fast(mat)
 
     # Calculate the distance for the path (FOR TESTING)
-    print(calculate_path_distance(path_in_original, distance_dict))
+    if debug:
+        print("path distance: ",calculate_path_distance(path_in_original, distance_dict))
+        print("total sum: ", k_medians.get_min_sum())
 
 
 
@@ -273,8 +301,11 @@ def algorithm(input_file, output_file):
             file.write("{}\n".format(drop_off_string))
     file.close()
 
+    #if testing:
+    #    return {"totalsum": k_medians.get_min_sum(), "pathdistance":calculate_path_distance(path_in_original, distance_dict)}
 
 
 
-algorithm('tst.in', 'tst.out')
 
+#if testing:
+#    algorithm('inputs/10_50.in', 'outputs/10_50.out')
