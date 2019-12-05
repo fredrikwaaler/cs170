@@ -29,7 +29,7 @@ class File:
                     for j in range(len(s)):
                         if s[j] == 'x':
                             s[j] = 0
-                        s[j] = int(s[j])
+                        s[j] = float(s[j])
                     self.graph.append(s)
 
         # save home indices
