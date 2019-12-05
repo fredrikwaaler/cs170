@@ -44,7 +44,6 @@ class K_Medians_Cluster():
         for i in range(len(adj_mat)):
             for j in range(len(adj_mat)):
                 distances[i][j] = dijkstras[i][j]
-        print(distances)
         return distances
 
 
