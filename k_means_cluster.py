@@ -330,15 +330,19 @@ class K_Medians_Cluster():
                 if debug_k_medians:
                     print("Already saw this total sum in the past. Return best centers from archive.")
                 # return the centers of the minimum total sum distance generated
+
                 return self.sumdist_cent_hist[self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]]
             else:
                 if debug_k_medians:
                     print("curr_centers_dict: ", centers_dict)
                     print("storing: ", centers_dict.keys())
+                centers = []
+                for center in centers_dict:
+                    centers.append(center)
 
                 # Store total sum and center points into archive
                 self.sumdist_hist.append(curr_totalsum)
-                self.sumdist_cent_hist[curr_totalsum] = centers_dict.keys()
+                self.sumdist_cent_hist[curr_totalsum] = centers
 
         # Setting a limit as the total sums converge
         # Sometimes, totalsum may be greater than previous totalsum but that's okay.
@@ -397,6 +401,8 @@ graph = f.getGraph()
 homes = f.getHomes()
 print(len(graph))
 print(len(homes))
+
+
 
 #k = 5 #Will work on approximation later
 k_medians = K_Medians_Cluster(homes, graph)
