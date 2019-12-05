@@ -11,7 +11,7 @@ from read_file import File
 # debug values
 debug = False
 debug_startingk = False
-debug_k_medians = True
+debug_k_medians = False
 
 class K_Medians_Cluster():
 
@@ -44,7 +44,6 @@ class K_Medians_Cluster():
         for i in range(len(adj_mat)):
             for j in range(len(adj_mat)):
                 distances[i][j] = dijkstras[i][j]
-        print(distances)
         return distances
 
 

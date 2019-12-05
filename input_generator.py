@@ -38,7 +38,7 @@ class GraphCreator:
                 if matrix[i][j] == 'x':
                     matrix[i][j] = 0
                 else:
-                    matrix[i][j] = int(matrix[i][j])
+                    matrix[i][j] = float(matrix[i][j])
 
         return matrix
 
