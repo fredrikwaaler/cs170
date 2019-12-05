@@ -11,6 +11,7 @@ import tspy
 from tspy.solvers import TwoOpt_solver
 from input_generator import GraphCreator
 from dijkstra import Graph
+from read_file import File
 
 
 def tsp_approx(ad_mat):
@@ -129,24 +130,146 @@ def find_shortest_traversal(matrix, node_list):
     return path
 
 
-def algorithm(input_file):
+def start_shift(path, start):
+    """
+    Shifts a path (i.e. [1,2,3,4,5,6,1] such that it starts at 'start'-param.
+    I.e. it start=4 it would return [4,5,6,1,2,3,4]
+    :param path:
+    :param start:
+    :return:
+    """
+    if path[0] == start:
+        return path
+    else:
+        start_index = path.index(start)
+        new_path = []
+        path = path[:-1]  # Old start is also old end, we don't want to dupe this in new path
+        for i in path[start_index:]:
+            new_path.append(i)
+        for i in path[:start_index+1]:
+            new_path.append(i)
+
+    return new_path
+
+
+def get_path_with_names(path, locations):
+    """
+    Given a path with indexes, and a set of locations, it will return the path but with name from the locations list.
+    :param path:
+    :param locations:
+    :return:
+    """
+    new_path = []
+    for node in path:
+        new_path.append(locations[node])
+    return new_path
+
+
+def convert_drop_off_plan_to_names(plan, locations):
+    """
+    Given an output plan {node_index: [dropoffs_indexes]} and a set of locations, it will return the dropoff plan
+    but with names instead of indexes.
+    :param plan:
+    :param locations:
+    :return:
+    """
+    new_plan = {}
+    for key in plan.keys():
+        new_plan[locations[key]] = []
+        for val in plan[key]:
+            new_plan[locations[key]].append(locations[val])
+    return new_plan
+
+
+def calculate_path_distance(path, distances):
+    total_distance = 0
+    for i in range(len(path)-1):
+        total_distance += distances[path[i]][path[i+1]]
+    return total_distance
+
+
+def algorithm(input_file, output_file):
+    # Generate the matrix from file
     mat = GraphCreator.get_matrix_from_file(input_file)
+
+    # Find locations and homes.
+    locations = GraphCreator.get_locations_from_file(input_file)
+    file = File(input_file)
+    file.readFile()
+    homes = file.getHomes()
+    start_loc = 0
+
     # Do some stuff to get the clusters
     # Cluster-centers should come from aprils funciton
     cluster_centers = [1, 5, 7, 14, 44, 32]  # Should be aprils_output.keys()
+
+    # Add starting location to cluster centers so that it is included in our path
+    if start_loc not in cluster_centers:
+        cluster_centers.append(start_loc)
+
     # Calculate the closest distances between the clusters so that we can run TSP
     cluster_distances = calculate_cluster_distances(mat, cluster_centers)
     # Create a graph with only clusters to use for TSP
     cluster_graph = create_cluster_graph(cluster_distances)
     # Do the TSP approx:
     tsp = tsp_approx(cluster_graph)
+    tsp = start_shift(tsp, start_loc)
     # Convert back to indexes in original graph
     nodes_in_original = [cluster_centers[i] for i in tsp]
+    # Make it so that we start at start location
+    nodes_in_original = start_shift(nodes_in_original, start_loc)
+
     # Then find actual path between nodes:
     path_in_original = find_shortest_traversal(mat, nodes_in_original)
-    print(path_in_original)
 
-algorithm('tst.in')
+    # Get distance dict to use for drop-offs
+    distance_dict = get_distance_dict_fast(mat)
+
+    # Calculate the distance for the path (FOR TESTING)
+    print(calculate_path_distance(path_in_original, distance_dict))
 
 
+
+    # We know path, we know homes. See where it is optimal to drop everyone of.
+    drop_offs = {}
+    unique_stops = list(set(path_in_original[1:]))
+    for home_index in range(len(homes)):
+        best = path_in_original[0]
+        for i in range(len(unique_stops)):
+            if distance_dict[home_index][unique_stops[i]] < distance_dict[home_index][best]:
+                best = path_in_original[i]
+        drop_offs[home_index] = best
+
+    # Invert dropoffs so we can see where we should drop of every TA
+    drop_off_plan = {val:[] for val in list(set(drop_offs.values()))}
+    for key in drop_offs.keys():
+        drop_off_plan[drop_offs[key]].append(key)
+
+
+    # Get everything nesecarry to create output
+    # Path with names instead of indexes
+    path = get_path_with_names(path_in_original, locations)
+    # Number of dropoffs
+    num_dropoffs = len(drop_off_plan.keys())
+    # Drop off plan with names instead of indexes
+    drop_off_plan = convert_drop_off_plan_to_names(drop_off_plan, locations)
+
+    # Now wright it all to the output file
+    with open(output_file, 'w') as file:
+        for loc in path:
+            file.write("{} ".format(loc))
+        file.write("\n")
+        file.write("{}\n".format(num_dropoffs))
+        for key in drop_off_plan:
+            drop_off_string = key
+            for val in drop_off_plan[key]:
+                if val != key:
+                    drop_off_string += " {}".format(val)
+            file.write("{}\n".format(drop_off_string))
+    file.close()
+
+
+
+
+algorithm('tst.in', 'tst.out')
 
