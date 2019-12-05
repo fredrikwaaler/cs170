@@ -12,6 +12,7 @@ from tspy.solvers import TwoOpt_solver
 from input_generator import GraphCreator
 from dijkstra import Graph
 from read_file import File
+from k_means_cluster import K_Medians_Cluster
 
 
 def tsp_approx(ad_mat):

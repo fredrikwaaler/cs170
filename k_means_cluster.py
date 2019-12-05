@@ -249,9 +249,13 @@ class K_Medians_Cluster():
         # Have a dictionary of dictionary:
         # {Center: {cluster_p: mean_dist, clusterp_p: mean_dist .... }}
         aa = {}
-        #for center in centers_dict:
-            #ac  ={}
-           # for cluster_p1 in centers_dict[center]:
+        for center in centers_dict:
+            ac  ={}
+            for cluster_p1 in centers_dict[center]:
+                for cluster_p2 in centers_dict[center]:
+                    if cluster_p1 != cluster_p2:
+                        cluster_p_sum += distances[cluster_p1][cluster_p2]
+
 
 
         '''
