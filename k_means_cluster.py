@@ -5,6 +5,7 @@ import copy
 import math
 from dijkstra import Graph
 from read_file import File
+from input_generator import GraphCreator
 
 # DRAFT:
 
@@ -29,6 +30,8 @@ class K_Medians_Cluster():
         self.homes = homes
         self.graph = graph
         self.first_center = random.randint(0,len(self.graph)-1)
+        if debug_startingk:
+            print("first_center: ",self.first_center)
         self.distances = self.get_distance_list_fast(self.graph)
 
 
@@ -65,6 +68,8 @@ class K_Medians_Cluster():
 
         first_center = random.randint(0, 49)
         if i == (k-1):
+            if debug_startingk:
+                print("starting k: ", i + 1, "/" ,k, " centers chosen. center_arr: ", center_arr)
             return center_arr
         # elif (i == 1):
         # farthest_loc = distances_copy[center_arr[i]].index(max(distances_copy[center_arr[i]]))
@@ -79,8 +84,6 @@ class K_Medians_Cluster():
 
         farthest_loc = center_arr[0]
         for center in cluster_dict.keys():
-            if debug_startingk:
-                print("center: ", center)
             max_dist = 0
             for cluster_p in cluster_dict[center]:
                 dist = distances_copy[center][cluster_p]
@@ -90,11 +93,12 @@ class K_Medians_Cluster():
 
         if debug_startingk:
             print("farthest_loc: ", farthest_loc)
-            print(i, "cluster_dict: ", cluster_dict)
         if farthest_loc not in center_arr:
             if debug_startingk:
                 print("farhtest_loc here")
             center_arr.append(farthest_loc)
+            if debug_startingk:
+                print("starting k: ", i + 1, "/", k, " centers chosen. cluster_dict: ", cluster_dict)
             # center_arr[i+1] = farthest_loc
             return self.k_starting_centers(distances_copy, center_arr, i + 1, k)
         else:
@@ -104,21 +108,31 @@ class K_Medians_Cluster():
             return self.k_starting_centers(distances_copy, center_arr, i, k)
 
 
-    def clustering(self, k_centers, k, verify):
+    def clustering(self, k_centers, k, homesBool):
         if debug:
             print("clustering")
         centers_dict = {key: [] for key in k_centers}
-
-        for i in range(len(self.graph)): #self.homes: #we only want to assign homes to centers
-            if i not in k_centers:
-                center_dist = [self.distances[i][j] for j in k_centers]
-                center_index = center_dist.index(min(center_dist))
-                center_for_loc = k_centers[center_index]
-                if center_for_loc in centers_dict.keys():
-                    centers_dict.update(center_for_loc = centers_dict[center_for_loc].append(i))
-        centers_dict.pop('center_for_loc', None)
-        if verify:
+        if homesBool:
+            cluster_nodes = self.homes # We only want to assign homes to centers
+            for i in self.homes:
+                if i not in k_centers:
+                    center_dist = [self.distances[i][j] for j in k_centers]
+                    center_index = center_dist.index(min(center_dist))
+                    center_for_loc = k_centers[center_index]
+                    centers_dict.update(center_for_loc=centers_dict[center_for_loc].append(i))
+            centers_dict.pop('center_for_loc', None)
             centers_dict = self.verify_clustering(centers_dict, k)
+
+        else:
+            cluster_nodes = self.graph # clustering method is used for generating starting k centers wrt all locations
+            for i in range(len(cluster_nodes)):
+                if i not in k_centers:
+                    center_dist = [self.distances[i][j] for j in k_centers]
+                    center_index = center_dist.index(min(center_dist))
+                    center_for_loc = k_centers[center_index]
+                    centers_dict.update(center_for_loc = centers_dict[center_for_loc].append(i))
+            centers_dict.pop('center_for_loc', None)
+
         return centers_dict
 
     def verify_clustering(self, centers_dict, k):
@@ -432,14 +446,19 @@ for file in os.listdir(directory):
     print(filename)
     #filename = "inputs/" + str(i+1) + "_50.in"
     #f = File("inputs/216_50.in")
-    
+
 #f = File("inputs/" + filename)
-f = File("inputs/216_50.in")
 
-f.readFile()
-graph = f.getGraph()
-homes = f.getHomes()
+filename = "inputs/226_50.in"
+g = GraphCreator()
+graph = g.get_matrix_from_file(filename)
+homes = g.get_home_indices(filename)
 
+#f = File("inputs/226_50.in")
+#f.readFile()
+#graph = f.getGraph()
+#homes = f.getHomes()
+print(homes)
 #k = 5 #Will work on approximation later
 k_medians = K_Medians_Cluster(homes, graph)
 
@@ -448,7 +467,6 @@ print("\n\nTesting for convergence: ")
 epsilon = 0
 centers_dict = k_medians.k_medians_clustering()#None, 0, math.inf, 1, k, epsilon, [])
 print("\nfinal clusters once sums converged: ", centers_dict)
-
 
 
 """

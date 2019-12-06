@@ -14,6 +14,7 @@ class GraphCreator:
     def __init__(self, test_mode=False):
         self.test_mode = test_mode
 
+
     @staticmethod
     def get_matrix_from_file(input_file):
         with open(input_file) as file:
@@ -41,6 +42,19 @@ class GraphCreator:
                     matrix[i][j] = float(matrix[i][j])
 
         return matrix
+
+    @staticmethod
+    def get_home_indices(input_file):
+        with open(input_file) as file:
+            lines = file.read().splitlines()
+        locations = lines[2].split()
+        homes = lines[3].split()
+        home_indices = []
+        for i in range(len(locations)):
+            if locations[i] in homes:
+                home_indices.append(i)
+        return home_indices
+
 
     @staticmethod
     def get_locations_from_file(input_file):
