@@ -60,7 +60,6 @@ class K_Medians_Cluster():
     def k_starting_centers(self, distances_copy, center_arr, i, k):
 
         first_center = random.randint(0, 49)
-
         if i == (k-1):
             return center_arr
         # elif (i == 1):
@@ -73,8 +72,11 @@ class K_Medians_Cluster():
             print("size of home: ", len(self.homes))
             print("size: ", len(cluster_dict[center_arr[0]]))
             print("starting cluster_dict: ", cluster_dict)
+
         farthest_loc = center_arr[0]
         for center in cluster_dict.keys():
+            if debug_startingk:
+                print("center: ", center)
             max_dist = 0
             for cluster_p in cluster_dict[center]:
                 dist = distances_copy[center][cluster_p]
@@ -86,12 +88,15 @@ class K_Medians_Cluster():
             print("farthest_loc: ", farthest_loc)
             print(i, "cluster_dict: ", cluster_dict)
         if farthest_loc not in center_arr:
+            if debug_startingk:
+                print("farhtest_loc here")
             center_arr.append(farthest_loc)
             # center_arr[i+1] = farthest_loc
             return self.k_starting_centers(distances_copy, center_arr, i + 1, k)
         else:
-            distances_copy[center_arr[i]][
-                farthest_loc] = -1  # To guarantee that this point will not be the max another time
+            if debug_startingk:
+                print("else here")
+            distances_copy[center_arr[i]][farthest_loc] = -1  # To guarantee that this point will not be the max another time
             return self.k_starting_centers(distances_copy, center_arr, i, k)
 
 
@@ -318,12 +323,7 @@ class K_Medians_Cluster():
         return min(self.sumdist_hist)
 
     def k_medians_clustering(self, centers_dict=None, prev_totalsum=0, curr_totalsum=math.inf, i=1, k=10, epsilon=0, k_centers=[]):
-        if len(self.graph) <= 50:
-            k = 7
-        elif len(self.graph) <= 100:
-            k = 13
-        elif len(self.graph) <= 200:
-            k = 20
+
 
         if debug_k_medians:
             print("prev_totalsum: ", prev_totalsum)
@@ -365,6 +365,15 @@ class K_Medians_Cluster():
         center.append(self.first_center)
 
         if i == 1:
+            if len(self.graph) <= 50:
+                if len(self.graph) == 1 or len(self.graph) == 2:
+                    k = int(len(self.graph)/2)
+                else:
+                    k = int(len(self.graph)/3)
+            elif len(self.graph) <= 100:
+                k = int(len(self.graph)/5.5)
+            elif len(self.graph) <= 200:
+                k = int(len(self.graph)/11)
             k_centers = self.k_starting_centers(copy.deepcopy(self.distances), center, 0, k)
 
         # Cluster homes wrt inital centers
@@ -403,7 +412,8 @@ totaldistance = k_medians.total_dist(centers_dict, distances)
 print("Total sum of distances between centers and corresponding cluster points: ",totaldistance)
 
 
-f = File("inputs/1_100.in")
+
+f = File("inputs/200_50.in")
 f.readFile()
 graph = f.getGraph()
 homes = f.getHomes()
@@ -425,5 +435,5 @@ print("\nfinal clusters once sums converged: ", centers_dict)
 dict = {3:[1,2], 4:{3,4}, 5:[1]}
 print(type(dict.keys()))
 
-"""
 
+"""
