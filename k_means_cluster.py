@@ -11,7 +11,7 @@ from read_file import File
 # debug values
 debug = False
 debug_startingk = False
-debug_k_medians = False
+debug_k_medians = True
 
 class K_Medians_Cluster():
 
@@ -105,7 +105,7 @@ class K_Medians_Cluster():
             print("clustering")
         centers_dict = {key: [] for key in k_centers}
 
-        for i in range(len(graph)): #self.homes: #we only want to assign homes to centers
+        for i in range(len(self.graph)): #self.homes: #we only want to assign homes to centers
             if i not in k_centers:
                 center_dist = [self.distances[i][j] for j in k_centers]
                 center_index = center_dist.index(min(center_dist))
@@ -414,28 +414,33 @@ totaldistance = k_medians.total_dist(centers_dict, distances)
 print("Total sum of distances between centers and corresponding cluster points: ",totaldistance)
 
 
+import os
 
-f = File("inputs/216_50.in")
-f.readFile()
-graph = f.getGraph()
-homes = f.getHomes()
-print(len(graph))
-print(len(homes))
+directory = os.fsencode("inputs")
+
+for file in os.listdir(directory):
+    filename = os.fsdecode(file)
+    print(filename)
+    #filename = "inputs/" + str(i+1) + "_50.in"
+    #f = File("inputs/216_50.in")
+    f = File("inputs/" + filename)
+    f.readFile()
+    graph = f.getGraph()
+    homes = f.getHomes()
+
+    #k = 5 #Will work on approximation later
+    k_medians = K_Medians_Cluster(homes, graph)
+
+    print("\n\nTesting for convergence: ")
+    #print("first_center: ",first_center)
+    epsilon = 0
+    centers_dict = k_medians.k_medians_clustering()#None, 0, math.inf, 1, k, epsilon, [])
+    print("\nfinal clusters once sums converged: ", centers_dict)
 
 
+    dict = {3:[1,2], 4:{3,4}, 5:[1]}
+    print(type(dict.keys()))
 
-#k = 5 #Will work on approximation later
-k_medians = K_Medians_Cluster(homes, graph)
-
-print("\n\nTesting for convergence: ")
-#print("first_center: ",first_center)
-epsilon = 0
-centers_dict = k_medians.k_medians_clustering()#None, 0, math.inf, 1, k, epsilon, [])
-print("\nfinal clusters once sums converged: ", centers_dict)
-
-
-dict = {3:[1,2], 4:{3,4}, 5:[1]}
-print(type(dict.keys()))
 
 
 """
