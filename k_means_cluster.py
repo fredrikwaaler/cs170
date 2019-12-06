@@ -141,7 +141,8 @@ class K_Medians_Cluster():
                 
                 '''
                 if i not in self.homes:
-                    print("Here 2")
+                    if debug:
+                        print("Here 2")
                     remove_key[i] = []
                 else:
                     centers_dict[i] = [i]
@@ -159,7 +160,8 @@ class K_Medians_Cluster():
                 '''
         for i in replace_key:
             centers_dict.pop(i)
-            print(replace_key[i][0])
+            if debug:
+                print(replace_key[i][0])
             centers_dict[replace_key[i][0]] = replace_key[i]
 
         for i in remove_key:
