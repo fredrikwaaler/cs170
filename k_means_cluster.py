@@ -20,6 +20,10 @@ class K_Medians_Cluster():
         # value: centers for that total sum distance
         self.sumdist_cent_hist = {}
 
+        # key: total sum distance
+        # value: centers and corresponding cluster points for that toal sum distance
+        self.sumdist_cluster_hist = {}
+
         # list of total sum distances
         self.sumdist_hist = []
         self.homes = homes
@@ -338,10 +342,9 @@ class K_Medians_Cluster():
                 if debug_k_medians:
                     print("Already saw this total sum in the past. Return best centers from archive.")
                 # return the centers of the minimum total sum distance generated
-                if debug_k_medians:
-                    print("min sum: ", min(self.sumdist_hist))
 
-                return self.sumdist_cent_hist[self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]]
+                minsum = self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]
+                return self.sumdist_cent_hist[minsum], self.sumdist_cluster_hist[minsum]
             else:
                 if debug_k_medians:
                     print("curr_centers_dict: ", centers_dict)
@@ -353,12 +356,18 @@ class K_Medians_Cluster():
                 # Store total sum and center points into archive
                 self.sumdist_hist.append(curr_totalsum)
                 self.sumdist_cent_hist[curr_totalsum] = centers
+                self.sumdist_cluster_hist[curr_totalsum] = centers_dict
+
+                if debug:
+                    print("self.sumdist_hist: ",self.sumdist_hist)
+                    print("self.sumdist_cent_hist: ", self.sumdist_cent_hist)
 
         # Setting a limit as the total sums converge
         # Sometimes, totalsum may be greater than previous totalsum but that's okay.
         #\That is why we choose to set a limit rather checking if sums are increasing i.e. quality of center points are decreasing.
         if abs(prev_totalsum - curr_totalsum) < epsilon:
-            return self.sumdist_cent_hist[self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]]
+            minsum = self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]
+            return self.sumdist_cent_hist[minsum], self.sumdist_cluster_hist[minsum]
 
         if debug_k_medians:
             print("centers_dict: ", centers_dict)
@@ -423,23 +432,22 @@ for file in os.listdir(directory):
     print(filename)
     #filename = "inputs/" + str(i+1) + "_50.in"
     #f = File("inputs/216_50.in")
-    f = File("inputs/" + filename)
-    f.readFile()
-    graph = f.getGraph()
-    homes = f.getHomes()
+    
+#f = File("inputs/" + filename)
+f = File("inputs/216_50.in")
 
-    #k = 5 #Will work on approximation later
-    k_medians = K_Medians_Cluster(homes, graph)
+f.readFile()
+graph = f.getGraph()
+homes = f.getHomes()
 
-    print("\n\nTesting for convergence: ")
-    #print("first_center: ",first_center)
-    epsilon = 0
-    centers_dict = k_medians.k_medians_clustering()#None, 0, math.inf, 1, k, epsilon, [])
-    print("\nfinal clusters once sums converged: ", centers_dict)
+#k = 5 #Will work on approximation later
+k_medians = K_Medians_Cluster(homes, graph)
 
-
-    dict = {3:[1,2], 4:{3,4}, 5:[1]}
-    print(type(dict.keys()))
+print("\n\nTesting for convergence: ")
+#print("first_center: ",first_center)
+epsilon = 0
+centers_dict = k_medians.k_medians_clustering()#None, 0, math.inf, 1, k, epsilon, [])
+print("\nfinal clusters once sums converged: ", centers_dict)
 
 
 
