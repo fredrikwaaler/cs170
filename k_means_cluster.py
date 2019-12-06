@@ -113,7 +113,7 @@ class K_Medians_Cluster():
             print("clustering")
         centers_dict = {key: [] for key in k_centers}
         if homesBool:
-            cluster_nodes = self.homes # We only want to assign homes to centers
+            # We only want to assign homes to centers
             for i in self.homes:
                 if i not in k_centers:
                     center_dist = [self.distances[i][j] for j in k_centers]
@@ -124,8 +124,8 @@ class K_Medians_Cluster():
             centers_dict = self.verify_clustering(centers_dict, k)
 
         else:
-            cluster_nodes = self.graph # clustering method is used for generating starting k centers wrt all locations
-            for i in range(len(cluster_nodes)):
+            # Clustering method is also used for generating starting k centers wrt all locations
+            for i in range(len(self.graph)):
                 if i not in k_centers:
                     center_dist = [self.distances[i][j] for j in k_centers]
                     center_index = center_dist.index(min(center_dist))
@@ -165,7 +165,6 @@ class K_Medians_Cluster():
                 else:
                     centers_dict[i] = [i]
                 '''
-                 print("Here 2")
                 if debug:
                     print("i: ", i, "centers_dict[i]: ", centers_dict[i])
                     print("EMPTY DICT")
