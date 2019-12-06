@@ -105,7 +105,7 @@ class K_Medians_Cluster():
             print("clustering")
         centers_dict = {key: [] for key in k_centers}
 
-        for i in self.homes: #we only want to assign homes to centers #(len(graph)):
+        for i in range(len(graph)): #self.homes: #we only want to assign homes to centers
             if i not in k_centers:
                 center_dist = [self.distances[i][j] for j in k_centers]
                 center_index = center_dist.index(min(center_dist))
@@ -415,7 +415,7 @@ print("Total sum of distances between centers and corresponding cluster points: 
 
 
 
-f = File("inputs/200_50.in")
+f = File("inputs/216_50.in")
 f.readFile()
 graph = f.getGraph()
 homes = f.getHomes()
