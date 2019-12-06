@@ -12,7 +12,7 @@ from input_generator import GraphCreator
 # debug values
 debug = False
 debug_startingk = False
-debug_k_medians = True
+debug_k_medians = False
 
 class K_Medians_Cluster():
 
@@ -207,8 +207,8 @@ class K_Medians_Cluster():
         sum_avg = 0
         for avg in cluster_avg:
             sum_avg += avg
-        avgsumx2_cluster = sum_avg/len(cluster_avg)
-        return avgsumx2_cluster #total_sum
+        avgavgsum_cluster = sum_avg/len(cluster_avg)
+        return avgavgsum_cluster #total_sum
 
     def get_min_sum(self):
         return min(self.sumdist_hist)
@@ -325,7 +325,7 @@ for file in os.listdir(directory):
     print(filename)
     #filename = "inputs/" + str(i+1) + "_50.in"
     #f = File("inputs/216_50.in")
-"""
+
 #f = File("inputs/" + filename)
 
 filename = "inputs/226_50.in"
@@ -348,4 +348,4 @@ centers_dict = k_medians.k_medians_clustering()#None, 0, math.inf, 1, k, epsilon
 print("\nfinal clusters once sums converged: ", centers_dict)
 
 
-
+"""
