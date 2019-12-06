@@ -222,10 +222,9 @@ def algorithm(input_file, output_file):
 
     # Find locations and homes.
     locations = GraphCreator.get_locations_from_file(input_file)
-    file = File(input_file)
-    file.readFile()
-    homes = file.getHomes()
-    start_loc = 0
+    homes = GraphCreator.get_homes_from_file(input_file)
+    start_loc = locations.index(GraphCreator.get_starting_location_from_file(input_file).strip())
+
 
     # Do some stuff to get the clusters
     # Cluster-centers should come from aprils funciton
@@ -309,3 +308,5 @@ def algorithm(input_file, output_file):
 
 #if testing:
 #    algorithm('inputs/10_50.in', 'outputs/10_50.out')
+
+algorithm('inputs/75_200.in', 'tst2.out')

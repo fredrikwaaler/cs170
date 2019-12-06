@@ -46,8 +46,25 @@ class GraphCreator:
     def get_locations_from_file(input_file):
         with open(input_file) as file:
             lines = file.read().splitlines()
+        file.close()
 
         return lines[2].split()
+
+    @staticmethod
+    def get_starting_location_from_file(input_file):
+        with open(input_file) as file:
+            lines = file.read().splitlines()
+        file.close()
+
+        return lines[4]
+
+    @staticmethod
+    def get_homes_from_file(input_file):
+        with open(input_file) as file:
+            lines = file.read().splitlines()
+        file.close()
+
+        return lines[3].split()
 
     @staticmethod
     def generate_adjacency_matrix(num_loc, x=1):
