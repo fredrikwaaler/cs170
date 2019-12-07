@@ -25,9 +25,9 @@ The first step on the way to deciding a good drop-off strategy for the input fil
 #### K-Medians Clustering Algorithm (with approximated k):
 We create the K_Medians_Cluster class to generate k number of clusters of homes using an approximated k to optimize the clustering i.e. obtain a high Dunn Index. 
 A larger Dunn Index indicates a higher cluster quality. Therefore, for a better quality clustering, we want the smallest distance between centers of different clusters to be as big as possible
-and the diameter of the largest cluster to be as small as possible. In essence, we aim to maximize the amount of TA's we can drop off in each drop-off location while minimizing the distance they walk and the distance Rao drives. 
+and the diameter of the largest cluster to be as small as possible. In essence, we aim to maximize the amount of TAs we can drop off in each drop-off location while minimizing the distance they walk and the distance Rao drives. 
 For each cluster Cn , where n ≤ N and N is the number of clusters, define the Dunn Index as:
-Dunn Index = max (dist(ci , cj)) / min (diam(Cn))
+'Dunn Index = max (dist(ci , cj)) / min (diam(Cn))
 for 1 ≤ i, j ≤ N and ci is a center of Ci  and cj is a center of Cj. 
 Then follow the procedure:
 Initialize a set of potential k values to generate various numbers of clusters with possibly differing Dunn Index values (at each incrementing interval from 1 to number of homes, choose the midpoints to the potential values of k).
