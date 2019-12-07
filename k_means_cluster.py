@@ -65,7 +65,7 @@ class K_Medians_Cluster():
     '''
     def k_trials(self, num_trials):
         # Divide length of graph into intervals
-        interval_len = int(len(self.homes)/num_trials)
+        interval_len = math.ceil(len(self.homes)/num_trials)
 
         if debug_k:
             print("num trials: ", num_trials)
@@ -375,7 +375,7 @@ class K_Medians_Cluster():
             all_clustering[dunn_index] = [centers, centers_dict]
             self.ith_k += 1
 
-        # The smaller the value of cluster_quality, the better
+        # The bigger the value of cluster_quality, the better
         max_dunn_index = -1
         best_clustering = []
         for dunn_index in all_clustering:
@@ -408,6 +408,7 @@ totaldistance = k_medians.total_dist(centers_dict, distances)
 print("Total sum of distances between centers and corresponding cluster points: ",totaldistance)
 
 
+
 import os
 
 directory = os.fsencode("inputs")
@@ -421,10 +422,10 @@ for file in os.listdir(directory):
 
 #f = File("inputs/" + filename)
 
-filename = "inputs/41_100.in"
+filename = "_200.in"
 g = GraphCreator()
-graph = g.get_matrix_from_file(filename)
-homes = g.get_home_indices(filename)
+graph = g.get_matrix_from_file("inputs/" + filename)
+homes = g.get_home_indices("inputs/" + filename)
 
 #f = File("inputs/226_50.in")
 #f.readFile()
@@ -432,7 +433,7 @@ homes = g.get_home_indices(filename)
 #homes = f.getHomes()
 print("homes: ",homes)
 #k = 5 #Will work on approximation later
-k_medians = K_Medians_Cluster(homes, graph, 3)
+k_medians = K_Medians_Cluster(homes, graph, 6)
 
 print("\n\nTesting for convergence: ")
 #print("first_center: ",first_center)
