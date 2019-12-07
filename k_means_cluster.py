@@ -12,11 +12,15 @@ from input_generator import GraphCreator
 # debug values
 debug = False
 debug_startingk = False
-debug_k_medians = False
+debug_k_medians = True
+debug_k = True
+debug_approx_k = True
+
+k_is_approximated = True
 
 class K_Medians_Cluster():
 
-    def __init__(self, homes, graph):
+    def __init__(self, homes, graph, num_trials):
         # key: total sum distance
         # value: centers for that total sum distance
         self.sumdist_cent_hist = {}
@@ -25,15 +29,14 @@ class K_Medians_Cluster():
         # value: centers and corresponding cluster points for that toal sum distance
         self.sumdist_cluster_hist = {}
 
-        # list of total sum distances
-        self.sumdist_hist = []
+        self.sumdist_hist = [] # list of total sum distances
         self.homes = homes
         self.graph = graph
-        self.first_center = random.randint(0,len(self.graph)-1)
-        if debug_startingk:
-            print("first_center: ",self.first_center)
+        self.first_center = 0
         self.distances = self.get_distance_list_fast(self.graph)
-        #self.avgcluster_sumavg = 0
+        self.k_potentials = []
+        self.k_trials(num_trials) # Generate num_trials potential k values to find best value of k to cluster
+        self.ith_k = 0
 
 
     """
@@ -54,6 +57,38 @@ class K_Medians_Cluster():
                 distances[i][j] = dijkstras[i][j]
         return distances
 
+    '''
+    Generate all k values you want apply to k_medians_clustering for k approximation
+    The k that generates best cluster_quality is the number 
+    '''
+    def k_trials(self, num_trials):
+        # Divide length of graph into intervals
+        interval_len = int(len(self.homes)/num_trials)
+
+        if debug_k:
+            print("num trials: ", num_trials)
+            print("interval length: ", interval_len)
+            print("home length: ", len(self.homes))
+
+        # Choose a value randomly in each interval to set as our trial k value
+        self.k_potentials = []
+        pos = 1
+
+        # Generate random ints within appropriate intervals until you have num_trials k values or already traversed through all intervals.
+        while (len(self.k_potentials) < num_trials) and (pos < len(self.graph)):
+            if pos + interval_len <= len(self.graph):
+                upper_limit = pos + interval_len - 1
+            else:
+                # If at the last interval of the length of the graph
+                upper_limit = len(self.graph) - 1
+            potential_k = random.randint(pos, upper_limit)
+            # If the generated random int is not already a k value, then include into k_potentials list and move on to the next interval.
+            if potential_k not in self.k_potentials:
+                self.k_potentials.append(potential_k)
+                pos += interval_len
+                if debug_k:
+                    print("k potentials: ", self.k_potentials)
+
 
     '''
     Choose k starting centers by starting with a random location and choosing next center to be the furthest location from the current center.
@@ -66,8 +101,9 @@ class K_Medians_Cluster():
     :return: list of center location indices
     '''
     def k_starting_centers(self, distances_copy, center_arr, i, k):
+        if debug_startingk:
+            print("first_center: ",self.first_center)
 
-        first_center = random.randint(0, 49)
         if i == (k-1):
             if debug_startingk:
                 print("starting k: ", i + 1, "/" ,k, " centers chosen. center_arr: ", center_arr)
@@ -152,7 +188,7 @@ class K_Medians_Cluster():
                     home = centers_dict[i][0]
                     replace_key[i] = [home]
             if len(centers_dict[i]) == 0:
-                #When a center has no points, delete cluster.
+                # When a center has no points, delete cluster.
                 if i not in self.homes:
                     if debug:
                         print("Here 2")
@@ -163,13 +199,14 @@ class K_Medians_Cluster():
         for i in replace_key:
             centers_dict.pop(i)
             if debug:
-                print(replace_key[i][0])
+                print("replace key: ", replace_key[i][0])
             centers_dict[replace_key[i][0]] = replace_key[i]
 
         for i in remove_key:
             centers_dict.pop(i)
 
         return centers_dict
+
 
     def improved_centers(self, centers_dict):
         # Get all cluster points in each cluster
@@ -189,8 +226,21 @@ class K_Medians_Cluster():
 
         return new_centers
 
+   # def dunn_index(self, centers_dict):
+        # a = find the min of (center1 - center2) squared
+        # b = find the max of (sum of distances from center to cluster points)
+        # dunn_index = max(a/b)
+        # We want the biggest ratio of smallest distance between centers over biggest diameter cluster
+        # in other words we want the smallest distance between centers to be as big as possible and want our diameter to be as small as possible
 
-    def compute_distAndAvg(self, centers_dict):
+        center_diff = []
+        #for center1 in centers_dict:
+        ##    for center2 in centers_dict:
+         #       self.distances[center1][center2])
+
+
+
+    def clustering_quality(self, centers_dict):
         # To compute total sum of sum of distances of center to all of its cluster points
         # and compute average of the sum of average sum of each cluster
         cluster_avg = [0 for i in range(len(centers_dict))]
@@ -210,10 +260,13 @@ class K_Medians_Cluster():
         avgavgsum_cluster = sum_avg/len(cluster_avg)
         return avgavgsum_cluster #total_sum
 
+
     def get_min_sum(self):
         return min(self.sumdist_hist)
 
-    def k_medians_clustering(self, centers_dict=None, prev_totalsum=0, curr_totalsum=math.inf, i=1, k=10, epsilon=0.5, k_centers=[]):
+
+    #def k_medians_clustering(self, centers_dict=None, prev_totalsum=0, curr_totalsum=math.inf, i=1, k=10, epsilon=0.5, k_centers=[]):
+    def k_medians_clustering(self, centers_dict=None, prev_totalsum=0, curr_totalsum=math.inf, i=1, epsilon=0.5, k_centers=[]):
 
         if debug_k_medians:
             print("prev_totalsum: ", prev_totalsum)
@@ -228,7 +281,7 @@ class K_Medians_Cluster():
                 # return the centers of the minimum total sum distance generated
 
                 minsum = self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]
-                return self.sumdist_cent_hist[minsum], self.sumdist_cluster_hist[minsum]
+                return self.sumdist_cent_hist[minsum], self.sumdist_cluster_hist[minsum], minsum
             else:
                 if debug_k_medians:
                     print("curr_centers_dict: ", centers_dict)
@@ -251,52 +304,66 @@ class K_Medians_Cluster():
         # That is why we choose to set a limit rather checking if sums are increasing i.e. quality of center points are decreasing.
         if abs(prev_totalsum - curr_totalsum) < epsilon:
             minsum = self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]
-            return self.sumdist_cent_hist[minsum], self.sumdist_cluster_hist[minsum]
+            return self.sumdist_cent_hist[minsum], self.sumdist_cluster_hist[minsum], minsum
 
+        k = self.k_potentials[self.ith_k]
         if debug_k_medians:
             print("centers_dict: ", centers_dict)
-
         # Generate initial k centers
         if i == 1:
             center = []
             center.append(self.first_center)
-            if len(self.graph) <= 50:
-                if len(self.graph) == 1 or len(self.graph) == 2:
-                    k = int(len(self.graph)/2)
-                else:
-                    k = int(len(self.graph)/3)
-            elif len(self.graph) <= 100:
-                k = int(len(self.graph)/5.5)
-            elif len(self.graph) <= 200:
-                k = int(len(self.graph)/11)
-            k_centers = self.k_starting_centers(copy.deepcopy(self.distances), center, 0, k)
+
+            if k_is_approximated:
+                k_centers = self.k_starting_centers(copy.deepcopy(self.distances), center, 0, k)
+            else:
+                if len(self.graph) <= 50:
+                    if len(self.graph) == 1 or len(self.graph) == 2:
+                        k = int(len(self.graph)/2)
+                    else:
+                        k = int(len(self.graph)/3)
+                elif len(self.graph) <= 100:
+                    k = int(len(self.graph)/5.5)
+                elif len(self.graph) <= 200:
+                    k = int(len(self.graph)/11)
+                k_centers = self.k_starting_centers(copy.deepcopy(self.distances), center, 0, k)
 
         # Cluster homes wrt inital centers
         centers_dict = self.clustering(k_centers, k, True)
 
         # Compute total sum of freshly computed distances between centers and corresponding cluster points
-        new_totalsum = self.compute_distAndAvg(centers_dict)
+        new_totalsum = self.clustering_quality(centers_dict)
 
         # Generate improved centers
         new_centers = self.improved_centers(centers_dict)
 
-        return self.k_medians_clustering(centers_dict, curr_totalsum, new_totalsum, i + 1, k, epsilon, new_centers)
+        return self.k_medians_clustering(centers_dict, curr_totalsum, new_totalsum, i + 1, epsilon, new_centers)
 
-    def approx_k(self, num_trials):
-        # Divide length of graph into intervals
-        interval_len = int(len(self.graph)/num_trials)
 
-        # Choose a value randomly in each interval to set as our trial k value
-        k = [0 for i in range(num_trials)]
-        pos = 0
-        while pos < len(self.graph):
-            if pos + interval_len <= len(self.graph):
-                upper_limit = pos + interval_len - 1
-            else:
-                upper_limit = len(self.graph) - 1
-            potential_k = random.randint(pos, upper_limit)
-            if (potential_k) not in k:
-                k.append(potential_k)
+    def approx_best_clustering(self):
+        self.first_center = random.randint(0, len(self.graph) - 1)
+        all_clustering = {}
+        for i in self.k_potentials:
+            if debug_approx_k:
+                print("k: ", i)
+            centers, centers_dict, cluster_quality = self.k_medians_clustering()
+            all_clustering[cluster_quality] = [centers, centers_dict]
+            self.ith_k += 1
+
+        # The smaller the value of cluster_quality, the better
+        min_best_quality = math.inf
+        best_clustering = []
+        for cluster_quality in all_clustering:
+            if debug_approx_k:
+                print("cluster quality(smaller better): ", cluster_quality)
+            if cluster_quality < min_best_quality:
+                min_best_quality = cluster_quality
+                best_clustering = all_clustering[cluster_quality]
+        if debug_approx_k:
+            print("\nbest clustering quality(smaller better): ",min_best_quality)
+            print("best clustering: ", best_clustering)
+        # Return list of center points and dictionary of centers and corresponding cluster points
+        return best_clustering[0], best_clustering[1]
 
 """
 # Temporary:
@@ -326,9 +393,10 @@ for file in os.listdir(directory):
     #filename = "inputs/" + str(i+1) + "_50.in"
     #f = File("inputs/216_50.in")
 
+"""
 #f = File("inputs/" + filename)
 
-filename = "inputs/226_50.in"
+filename = "inputs/204_200.in"
 g = GraphCreator()
 graph = g.get_matrix_from_file(filename)
 homes = g.get_home_indices(filename)
@@ -337,15 +405,16 @@ homes = g.get_home_indices(filename)
 #f.readFile()
 #graph = f.getGraph()
 #homes = f.getHomes()
-print(homes)
+print("homes: ",homes)
 #k = 5 #Will work on approximation later
-k_medians = K_Medians_Cluster(homes, graph)
+k_medians = K_Medians_Cluster(homes, graph, 3)
 
 print("\n\nTesting for convergence: ")
 #print("first_center: ",first_center)
 epsilon = 0
-centers_dict = k_medians.k_medians_clustering()#None, 0, math.inf, 1, k, epsilon, [])
-print("\nfinal clusters once sums converged: ", centers_dict)
+results = k_medians.approx_best_clustering()
+#centers_dict = k_medians.k_medians_clustering()#None, 0, math.inf, 1, k, epsilon, [])
+print("\nfinal clusters once sums converged: ", results)
 
 
-"""
+
