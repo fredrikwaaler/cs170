@@ -211,6 +211,47 @@ def calculate_path_distance(path, distances):
     return total_distance
 
 
+def get_home_indices(locations, homes):
+    """
+    Takes a list of locations and a list of homes (both as strings).
+    Returns the indices of location that corresponds to each home.
+    :param locations: List of locations
+    :param homes: List of homes
+    :return: List of indices in locations of location that corresponds to each home.
+    """
+    indexes = []
+    for home in homes:
+        indexes.append(locations.index(home))
+    return indexes
+
+"""
+METHOD NOT WORKING: NEED TO BE ABLE TO KNOW THE CLUSTER-CENTER OF ANY NODE
+def assert_tsp_optimal(drop_offs, clustering):
+    # Invert clustering so we can lookup center from node
+    inv_clustering = {}
+    for key in clustering.keys():
+        inv_clustering[key] = key
+        for node in clustering[key]:
+            inv_clustering[node] = key
+    # Delete clusters whos locations were not used as drop-offs.
+    used = {center: False for center in clustering.keys()}
+    for node in drop_offs.keys():
+        used[inv_clustering[node]] = True
+
+    # Would mean all are True (visited)
+    if len(set(used.values())) == 1:
+        optimal = True
+    else:
+        optimal = False
+
+    centers_in_use = []
+    for key in used.keys():
+        if used[key]:
+            centers_in_use.append(key)
+
+    return optimal, centers_in_use
+"""
+
 def algorithm(input_file, output_file):
     """
     Drive TA's Home Algorithm.
@@ -223,14 +264,16 @@ def algorithm(input_file, output_file):
     # Find locations and homes.
     locations = GraphCreator.get_locations_from_file(input_file)
     homes = GraphCreator.get_homes_from_file(input_file)
+    home_indexes = get_home_indices(locations, homes)
     start_loc = locations.index(GraphCreator.get_starting_location_from_file(input_file).strip())
 
 
     # Do some stuff to get the clusters
     # Cluster-centers should come from aprils funciton
-    k_medians = K_Medians_Cluster(homes, mat)
+    k_medians = K_Medians_Cluster(home_indexes, mat, num_trials=6)
+    
 
-    cluster_centers = k_medians.k_medians_clustering()
+    cluster_centers = k_medians.approx_best_clustering()[0]
     #cluster_centers = [1, 5, 7, 14, 32]  # Should be aprils_output.keys()
 
     # Add starting location to cluster centers so that it is included in our path
@@ -239,44 +282,48 @@ def algorithm(input_file, output_file):
 
     # Calculate the closest distances between the clusters so that we can run TSP
     cluster_distances = calculate_cluster_distances(mat, cluster_centers)
+
     # Create a graph with only clusters to use for TSP
     cluster_graph = create_cluster_graph(cluster_distances)
-    # Do the TSP approx:
-    tsp = tsp_approx(cluster_graph)
-    tsp = start_shift(tsp, start_loc)
-    # Convert back to indexes in original graph
-    nodes_in_original = [cluster_centers[i] for i in tsp]
-    # Make it so that we start at start location
-    nodes_in_original = start_shift(nodes_in_original, start_loc)
-
-    # Then find actual path between nodes:
-    path_in_original = find_shortest_traversal(mat, nodes_in_original)
 
     # Get distance dict to use for drop-offs
     distance_dict = get_distance_dict_fast(mat)
+
+    if len(cluster_centers) > 1:
+        # Do the TSP approx:
+        tsp = tsp_approx(cluster_graph)
+        # Convert back to indexes in original graph
+        nodes_in_original = [cluster_centers[i] for i in tsp]
+        # Make it so that we start at start location
+        nodes_in_original = start_shift(nodes_in_original, start_loc)
+
+        # Then find actual path between nodes:
+        path_in_original = find_shortest_traversal(mat, nodes_in_original)
+
+    else:
+        path_in_original = cluster_centers
 
     # Calculate the distance for the path (FOR TESTING)
     if debug:
         print("path distance: ",calculate_path_distance(path_in_original, distance_dict))
         print("total sum: ", k_medians.get_min_sum())
 
-
-
     # We know path, we know homes. See where it is optimal to drop everyone of.
     drop_offs = {}
-    unique_stops = list(set(path_in_original[1:]))
-    for home_index in range(len(homes)):
-        best = path_in_original[0]
+    unique_stops = list(set(path_in_original))
+    # Found out which drop off location is best for each home
+    for home_index in home_indexes:
+        best = unique_stops[0]
         for i in range(len(unique_stops)):
             if distance_dict[home_index][unique_stops[i]] < distance_dict[home_index][best]:
-                best = path_in_original[i]
+                best = unique_stops[i]
         drop_offs[home_index] = best
 
     # Invert dropoffs so we can see where we should drop of every TA
-    drop_off_plan = {val:[] for val in list(set(drop_offs.values()))}
+    drop_off_plan = {val: [] for val in list(set(drop_offs.values()))}
+
     for key in drop_offs.keys():
         drop_off_plan[drop_offs[key]].append(key)
-
 
     # Get everything nesecarry to create output
     # Path with names instead of indexes
@@ -295,8 +342,7 @@ def algorithm(input_file, output_file):
         for key in drop_off_plan:
             drop_off_string = key
             for val in drop_off_plan[key]:
-                if val != key:
-                    drop_off_string += " {}".format(val)
+                drop_off_string += " {}".format(val)
             file.write("{}\n".format(drop_off_string))
     file.close()
 
@@ -309,4 +355,5 @@ def algorithm(input_file, output_file):
 #if testing:
 #    algorithm('inputs/10_50.in', 'outputs/10_50.out')
 
-algorithm('inputs/75_200.in', 'tst2.out')
+#41_100
+# algorithm('inputs/41_100.in', 'outputs/41_100.out')
