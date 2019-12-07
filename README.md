@@ -3,8 +3,12 @@ This is the DTH-algorithm, it will work by itself.
 However, you will need the following modules to run it:
 - tspy
 
-PS: On one of our machines will not run the tspy module, giving an error in scipy.
-For the one of us for which it works, we are using python 3.6.3
+IMPORTANT: The tspy module while have some inherent errors.
+There will be locations in the code where they have used indexing like [i,i].
+You will have to manually change this to [i][i] for your local tspy module.
+This can be done by using pycharm or pretty much any other high-level IDE, which will locate the line of the error for you.
+This will give you the location of the wrong indexing [i,i], just click that location and you will be taken
+to the code-file where you can change to [i][i].
 
 This library is installable trough pip.
 "pip install tspy"
