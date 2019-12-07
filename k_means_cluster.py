@@ -12,9 +12,9 @@ from input_generator import GraphCreator
 # debug values
 debug = False
 debug_startingk = False
-debug_k_medians = True
-debug_k = True
-debug_approx_k = True
+debug_k_medians = False
+debug_k = False
+debug_approx_k = False
 
 k_is_approximated = True
 
@@ -37,6 +37,8 @@ class K_Medians_Cluster():
         self.k_potentials = []
         self.k_trials(num_trials) # Generate num_trials potential k values to find best value of k to cluster
         self.ith_k = 0
+        self.dunn_index = 0
+
 
 
     """
@@ -81,14 +83,7 @@ class K_Medians_Cluster():
             else:
                 # If at the last interval of the length of the graph
                 upper_limit = len(self.graph) - 1
-            potential_k = random.randint(pos, upper_limit)
-            # If the generated random int is not already a k value, then include into k_potentials list and move on to the next interval.
-            if potential_k not in self.k_potentials:
-                self.k_potentials.append(potential_k)
-                pos += interval_len
-                if debug_k:
-                    print("k potentials: ", self.k_potentials)
-
+            self.k_potentials.append(int((upper_limit - pos)/2))
 
     '''
     Choose k starting centers by starting with a random location and choosing next center to be the furthest location from the current center.
@@ -226,17 +221,21 @@ class K_Medians_Cluster():
 
         return new_centers
 
-   # def dunn_index(self, centers_dict):
+    def dunn_index(self, centers_dict):
         # a = find the min of (center1 - center2) squared
         # b = find the max of (sum of distances from center to cluster points)
         # dunn_index = max(a/b)
         # We want the biggest ratio of smallest distance between centers over biggest diameter cluster
         # in other words we want the smallest distance between centers to be as big as possible and want our diameter to be as small as possible
 
-        center_diff = []
-        #for center1 in centers_dict:
-        ##    for center2 in centers_dict:
-         #       self.distances[center1][center2])
+        min_diff = math.inf
+        for center1 in centers_dict:
+            for center2 in centers_dict:
+                dist = self.distances[center1][center2]
+                if dist < min_diff:
+                    min_diff = dist
+
+
 
 
 
@@ -245,12 +244,14 @@ class K_Medians_Cluster():
         # and compute average of the sum of average sum of each cluster
         cluster_avg = [0 for i in range(len(centers_dict))]
         count = 0
-        #total_sum = 0
+
+        cluster_sums = []
         for center in centers_dict.keys():
             cluster_sum = 0
             for cluster_p in centers_dict[center]:
                 #total_sum += self.distances[center][cluster_p]
                 cluster_sum += self.distances[center][cluster_p]
+            cluster_sums.append(cluster_sum)
             cluster_avg[count] = cluster_sum/len(centers_dict[center])
             count += 1
 
@@ -258,7 +259,26 @@ class K_Medians_Cluster():
         for avg in cluster_avg:
             sum_avg += avg
         avgavgsum_cluster = sum_avg/len(cluster_avg)
-        return avgavgsum_cluster #total_sum
+
+        # Also computing Dunn Index
+        # a = find the min of (center1 - center2) squared
+        # b = find the max of (sum of distances from center to cluster points)
+        # dunn_index = max(a/b)
+        # We want the biggest ratio of smallest distance between centers over biggest diameter cluster
+        # in other words we want the smallest distance between centers to be as big as possible and want our diameter to be as small as possible
+
+        min_center_diff = math.inf
+        for center1 in centers_dict:
+            for center2 in centers_dict:
+                dist = self.distances[center1][center2]
+                if dist < min_center_diff:
+                    min_center_diff = dist
+
+        max_cluster_diameter = max(cluster_sums)
+
+        self.dunn_index = min_center_diff/max_cluster_diameter
+
+        return avgavgsum_cluster
 
 
     def get_min_sum(self):
@@ -393,7 +413,7 @@ for file in os.listdir(directory):
     #filename = "inputs/" + str(i+1) + "_50.in"
     #f = File("inputs/216_50.in")
 
-"""
+
 #f = File("inputs/" + filename)
 
 filename = "inputs/204_200.in"
@@ -418,3 +438,4 @@ print("\nfinal clusters once sums converged: ", results)
 
 
 
+"""
