@@ -12,9 +12,9 @@ from input_generator import GraphCreator
 # debug values
 debug = False
 debug_startingk = False
-debug_k_medians = True
-debug_k = True
-debug_approx_k = True
+debug_k_medians = False
+debug_k = False
+debug_approx_k = False
 
 k_is_approximated = True
 
