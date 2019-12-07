@@ -12,9 +12,9 @@ from input_generator import GraphCreator
 # debug values
 debug = False
 debug_startingk = False
-debug_k_medians = False
-debug_k = False
-debug_approx_k = False
+debug_k_medians = True
+debug_k = True
+debug_approx_k = True
 
 k_is_approximated = True
 
@@ -80,10 +80,14 @@ class K_Medians_Cluster():
         while (len(self.k_potentials) < num_trials) and (pos < len(self.graph)):
             if pos + interval_len <= len(self.graph):
                 upper_limit = pos + interval_len - 1
+                if debug_k:
+                    print("upper_limit: ", upper_limit)
+                    print("lower_limit: ", pos)
             else:
                 # If at the last interval of the length of the graph
                 upper_limit = len(self.graph) - 1
-            self.k_potentials.append(int((upper_limit - pos)/2))
+            self.k_potentials.append(pos + int((upper_limit - pos)/2))
+            pos += interval_len
 
     '''
     Choose k starting centers by starting with a random location and choosing next center to be the furthest location from the current center.
@@ -221,24 +225,6 @@ class K_Medians_Cluster():
 
         return new_centers
 
-    def dunn_index(self, centers_dict):
-        # a = find the min of (center1 - center2) squared
-        # b = find the max of (sum of distances from center to cluster points)
-        # dunn_index = max(a/b)
-        # We want the biggest ratio of smallest distance between centers over biggest diameter cluster
-        # in other words we want the smallest distance between centers to be as big as possible and want our diameter to be as small as possible
-
-        min_diff = math.inf
-        for center1 in centers_dict:
-            for center2 in centers_dict:
-                dist = self.distances[center1][center2]
-                if dist < min_diff:
-                    min_diff = dist
-
-
-
-
-
     def clustering_quality(self, centers_dict):
         # To compute total sum of sum of distances of center to all of its cluster points
         # and compute average of the sum of average sum of each cluster
@@ -270,13 +256,18 @@ class K_Medians_Cluster():
         min_center_diff = math.inf
         for center1 in centers_dict:
             for center2 in centers_dict:
-                dist = self.distances[center1][center2]
-                if dist < min_center_diff:
-                    min_center_diff = dist
-
-        max_cluster_diameter = max(cluster_sums)
-
+                if center1 != center2:
+                    dist = self.distances[center1][center2]
+                    if dist < min_center_diff:
+                        min_center_diff = float(dist)
+        if debug_k_medians:
+            print("min_center_diff: ", min_center_diff)
+        max_cluster_diameter = float(max(cluster_sums))
+        if debug_k_medians:
+            print("max_cluster_diameter: ", max_cluster_diameter)
         self.dunn_index = min_center_diff/max_cluster_diameter
+        if debug_k_medians:
+            print("freshly computed self.dunn_index: ", self.dunn_index)
 
         return avgavgsum_cluster
 
@@ -301,7 +292,12 @@ class K_Medians_Cluster():
                 # return the centers of the minimum total sum distance generated
 
                 minsum = self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]
-                return self.sumdist_cent_hist[minsum], self.sumdist_cluster_hist[minsum], minsum
+                centers = self.sumdist_cent_hist[minsum].copy()
+                cl_dict = self.sumdist_cluster_hist[minsum].copy()
+                self.sumdist_cluster_hist = {}
+                self.sumdist_hist = []
+                self.sumdist_cent_hist = {}
+                return centers, cl_dict, self.dunn_index
             else:
                 if debug_k_medians:
                     print("curr_centers_dict: ", centers_dict)
@@ -324,7 +320,12 @@ class K_Medians_Cluster():
         # That is why we choose to set a limit rather checking if sums are increasing i.e. quality of center points are decreasing.
         if abs(prev_totalsum - curr_totalsum) < epsilon:
             minsum = self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]
-            return self.sumdist_cent_hist[minsum], self.sumdist_cluster_hist[minsum], minsum
+            centers = self.sumdist_cent_hist[minsum].copy()
+            cl_dict = self.sumdist_cluster_hist[minsum].copy()
+            self.sumdist_cluster_hist = {}
+            self.sumdist_hist = []
+            self.sumdist_cent_hist = {}
+            return centers, cl_dict, self.dunn_index
 
         k = self.k_potentials[self.ith_k]
         if debug_k_medians:
@@ -353,6 +354,8 @@ class K_Medians_Cluster():
 
         # Compute total sum of freshly computed distances between centers and corresponding cluster points
         new_totalsum = self.clustering_quality(centers_dict)
+        if debug_k_medians:
+            print("dunn_index", self.dunn_index)
 
         # Generate improved centers
         new_centers = self.improved_centers(centers_dict)
@@ -363,24 +366,26 @@ class K_Medians_Cluster():
     def approx_best_clustering(self):
         self.first_center = random.randint(0, len(self.graph) - 1)
         all_clustering = {}
+        if debug_approx_k:
+            print("self.k_potentials: ", self.k_potentials)
         for i in self.k_potentials:
             if debug_approx_k:
                 print("k: ", i)
-            centers, centers_dict, cluster_quality = self.k_medians_clustering()
-            all_clustering[cluster_quality] = [centers, centers_dict]
+            centers, centers_dict, dunn_index = self.k_medians_clustering()
+            all_clustering[dunn_index] = [centers, centers_dict]
             self.ith_k += 1
 
         # The smaller the value of cluster_quality, the better
-        min_best_quality = math.inf
+        max_dunn_index = -1
         best_clustering = []
-        for cluster_quality in all_clustering:
+        for dunn_index in all_clustering:
             if debug_approx_k:
-                print("cluster quality(smaller better): ", cluster_quality)
-            if cluster_quality < min_best_quality:
-                min_best_quality = cluster_quality
-                best_clustering = all_clustering[cluster_quality]
+                print("dunn_index(bigger better): ", dunn_index)
+            if dunn_index > max_dunn_index:
+                max_dunn_index = dunn_index
+                best_clustering = all_clustering[dunn_index]
         if debug_approx_k:
-            print("\nbest clustering quality(smaller better): ",min_best_quality)
+            print("\nbest clustering quality(bigger better): ",max_dunn_index)
             print("best clustering: ", best_clustering)
         # Return list of center points and dictionary of centers and corresponding cluster points
         return best_clustering[0], best_clustering[1]
@@ -416,7 +421,7 @@ for file in os.listdir(directory):
 
 #f = File("inputs/" + filename)
 
-filename = "inputs/204_200.in"
+filename = "inputs/41_100.in"
 g = GraphCreator()
 graph = g.get_matrix_from_file(filename)
 homes = g.get_home_indices(filename)
@@ -435,7 +440,6 @@ epsilon = 0
 results = k_medians.approx_best_clustering()
 #centers_dict = k_medians.k_medians_clustering()#None, 0, math.inf, 1, k, epsilon, [])
 print("\nfinal clusters once sums converged: ", results)
-
 
 
 """
