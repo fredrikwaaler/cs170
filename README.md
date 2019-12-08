@@ -53,6 +53,6 @@ Since we have clustered using k-medians, the idea is that we can use the cluster
 Since the cluster-centers are serving as reference-points for our path, we also add our starting point to the cluster-centers, if it not already is one, as the path need to contain this point. The algorithm then calculates the distance between the centers using dijkstras, and then uses a tsp-approximation algorithm (pip library tspy) to find the optimal route in the graph that visits all cluster-centers at least once. The algorithm then modifies the suggested TSP-tour to make sure that we start and end at the starting location provided in the input. The car will not deviate from this suggested tour during its run. Finally, to determine where to drop off the different TA`s, the algorithm analyzes all the nodes that the car will be visiting on it`s tour, and decides what TA's is optimal to drop off at any node. After the algorithm has decided on its path for traversal and its drop-off locations, it proceeds to write the results to the specified output file. 
 
 
-April Shin, Fredrik Waaler
-CS 170 Algorithms
+April Shin, Fredrik Waaler <br/>
+CS 170 Algorithms <br/>
 UC Berkeley
