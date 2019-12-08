@@ -80,6 +80,9 @@ class K_Medians_Cluster():
         self.k_potentials = []
         pos = 1
 
+        if len(self.homes) == 1:
+            self.k_potentials.append(pos)
+            num_trials = 1
         # Set the midpoint of each interval as the value of k until you have num_trials k values or already traversed through all intervals.
         while (len(self.k_potentials) < num_trials) and (pos < len(self.homes)):
             if pos + interval_len <= len(self.homes):
@@ -287,7 +290,8 @@ class K_Medians_Cluster():
 
         if debug_k_medians:
             print("max_cluster_diameter: ", max_cluster_diameter)
-
+        if max_cluster_diameter == 0: # Only applicable when number of homes == 1
+            max_cluster_diameter = 1
         self.dunn_index = min_center_diff/max_cluster_diameter
 
         if debug_k_medians:
@@ -354,7 +358,8 @@ class K_Medians_Cluster():
 
         # Setting a limit as the average of intra-cluster average distances converge.
         # We choose to set a limit of the converging difference between previous and current qualities obtained.
-        if abs(prev_totalsum - curr_totalsum) < epsilon:
+        # If number of iterations exceed 100, stop algorithm
+        if abs(prev_totalsum - curr_totalsum) < epsilon or i > 100:
             minsum = self.sumdist_hist[self.sumdist_hist.index(min(self.sumdist_hist))]
             centers = self.sumdist_cent_hist[minsum].copy()
             cl_dict = self.sumdist_cluster_hist[minsum].copy()
@@ -406,7 +411,7 @@ class K_Medians_Cluster():
         '''
         To approximately find the optimal k number of clusters, run k-medians clustering algorithm to generate k clusters for each potential value k,
         generated in k_trials method.
-        The k value with the lowest Dunn Index for the generated clusters is the optimal k value.
+        The k value with the highest Dunn Index for the generated clusters is the optimal k value.
         :return: list of optimal centers, dictionary with keys being optimal centers and values being a list of corresponding cluster points
         '''
         self.first_center = random.randint(0, len(self.graph) - 1)
@@ -440,3 +445,5 @@ class K_Medians_Cluster():
 # k-meansclustering (used as guidance for construction k-medians clustering): https://www.analyticsvidhya.com/blog/2019/08/comprehensive-guide-k-means-clustering/
 # towardsdatascience.com
 # Euclidean Median: https://web.math.princeton.edu/~amits/publications/NLEM.pdf
+
+
