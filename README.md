@@ -1,4 +1,4 @@
-## Drop off TA's Home Project
+# Drop off TA's Home Project
 This algorithm implements a NP-hard problem of generating the optimal path that minimizes the total energy cost. As each TA is dropped off at a drop off location or their homes, we aim to minimize the total energy expended from driving each TA to a location and TA's walking from a drop off location to their homes. For each unit distance, driving uses 2/3 the energy used by a walking TA.
 
 ## Instructions
