@@ -31,7 +31,7 @@ We create the K_Medians_Cluster class to generate k number of clusters of homes 
 For each cluster Cn , where n ≤ N and N is the number of clusters, define the Dunn Index as: <br/>
 
 <p align="center">
-  `Dunn Index = max (dist(ci , cj)) / min (diam(Cn))`
+  *Dunn Index = max (dist(ci , cj)) / min (diam(Cn))*
 </p>
 
 for 1 ≤ i, j ≤ N and ci is a center of Ci  and cj is a center of Cj. <br/>
