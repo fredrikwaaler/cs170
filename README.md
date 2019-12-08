@@ -30,9 +30,9 @@ The first step on the way to deciding a good drop-off strategy for the input fil
 We create the K_Medians_Cluster class to generate k number of clusters of homes using an approximated k to optimize the clustering i.e. obtain a high Dunn Index. <br/>
 For each cluster Cn , where n ≤ N and N is the number of clusters, define the Dunn Index as: <br/>
 
-<p align="center">
-  *Dunn Index = max (dist(ci , cj)) / min (diam(Cn))*
-</p>
+*<p align="center">
+  Dunn Index = max (dist(ci , cj)) / min (diam(Cn))
+</p>*
 
 for 1 ≤ i, j ≤ N and ci is a center of Ci  and cj is a center of Cj. <br/>
 A larger Dunn Index indicates a higher cluster quality. Therefore, for a better quality clustering, we want the smallest distance between centers of different clusters to be as big as possible
