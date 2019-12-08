@@ -1,3 +1,7 @@
+# Drop off TA's Home Project
+This algorithm implements a NP-hard problem of generating the optimal path that minimizes the total energy cost. As each TA is dropped off at a drop off location or their home, we aim to minimize the total energy expended from driving each TA to a location and TA's walking from a drop off location to their homes. For each unit distance, driving uses 2/3 the energy used by a walking TA.
+
+## Instructions
 To use the algorithm, simply import "algorithm" from TSP.
 This is the DTH-algorithm, it will work by itself.
 However, you will need the following modules to run it:
@@ -23,12 +27,16 @@ The algorithm should be provided with two parameters, paths for an input file an
 The first step on the way to deciding a good drop-off strategy for the input file is clustering the homes in the graph. 
 
 #### K-Medians Clustering Algorithm (with approximated k):
-We create the K_Medians_Cluster class to generate k number of clusters of homes using an approximated k to optimize the clustering i.e. obtain a high Dunn Index. 
+We create the K_Medians_Cluster class to generate k number of clusters of homes using an approximated k to optimize the clustering i.e. obtain a high Dunn Index. <br/>
+For each cluster Cn , where n ≤ N and N is the number of clusters, define the Dunn Index as: <br/>
+
+<p align="center">
+  Dunn Index = max (dist(ci , cj)) / min (diam(Cn))
+</p>
+
+for 1 ≤ i, j ≤ N and ci is a center of Ci  and cj is a center of Cj. <br/>
 A larger Dunn Index indicates a higher cluster quality. Therefore, for a better quality clustering, we want the smallest distance between centers of different clusters to be as big as possible
 and the diameter of the largest cluster to be as small as possible. In essence, we aim to maximize the amount of TA's we can drop off in each drop-off location while minimizing the distance they walk and the distance Rao drives. 
-For each cluster Cn , where n ≤ N and N is the number of clusters, define the Dunn Index as:
-`Dunn Index = max (dist(ci , cj)) / min (diam(Cn))`
-for 1 ≤ i, j ≤ N and ci is a center of Ci  and cj is a center of Cj. 
 Then follow the procedure:
 Initialize a set of potential k values to generate various numbers of clusters with possibly differing Dunn Index values (at each incrementing interval from 1 to number of homes, choose the midpoints to the potential values of k).
 Compute the distance between every location using dijkstra.
@@ -42,14 +50,13 @@ Generate improved centers using previously generated clusters by identifying the
 Repeat steps 2, 3, and 4 with improved centers at each iteration.
 However, if a new average of intra-cluster average distances is generated, save into archive of all cluster history. Otherwise, if this average was previously generated or if the difference of previous and currently generated averages are converging to a value less than manually chosen epsilon, stop the algorithm and return the set of clusters with the minimum average of intra-cluster average distances.
 As the aim is to generate the optimal k number of clusters, run k-medians clustering algorithm to generate k clusters for each potential value k.
-The k value with the lowest Dunn Index for the generated clusters is the best approximated k value. Ultimately, we obtain a k clusters with an approximated k to yield a lower Dunn Index.
+The k value with the highest Dunn Index for the generated clusters is the best approximated k value. Ultimately, we obtain a k clusters with an approximated k to yield a highest Dunn Index.
 
 #### TSP (with additions)
 Since we have clustered using k-medians, the idea is that we can use the clusters as an initial idea of what our path should be. Since the centers should not be too far away from its surrounding nodes (the homes in this case), it shouldn't be too far to walk for the TA’s if they are dropped off at the cluster-center for the cluster containing their home. 
-Since the cluster-centers are serving as reference-points for our path, we also add our starting point to the cluster-centers, if it not already is one, as the path need to contain this point. The algorithm then calculates the distance between the centers using dijkstras, and then uses a tsp-approximation algorithm (pip library tspy) to find the optimal route in the graph that visits all cluster-centers at least once. The algorithm then modifies the suggested TSP-tour to make sure that we start and end at the starting location provided in the input. The car will not deviate from this suggested tour during its run. Finally, to determine where to drop off the different TA`s, the algorithm analyzes all the nodes that the car will be visiting on it`s tour, and decides what TA's is optimal to drop off at any node. After the algorithm has decided on its path for traversal and its drop-off locations, it proceeds to write the results to the specified output file. 
-
-## What other methods did you try?
-We initially thought to use the k-cluster algorithm from the course textbook. However, the given algorithm generated clusters in one iteration. We realized to generate a set of clusters we have many options and generating one set of clusters does not guarantee us an optimal set of clusters. Therefore, we opted to use the k-means clustering algorithm to improve our centers continuously until the quality of the clusters did significantly improve any longer i.e. the average of the inter-cluster average distance converged. However, we realized that the k-means clustering algorithm cannot be applied to this project because we only have an adjacency from which we can create a distance matrix (computing the shortest distance using dijkstra between every pair of locations). Therefore, we opted to use the k-median clustering algorithm (utilizing the Euclidean median to approximately locate the best center point of each cluster). 
-We also considered many values to quantify the quality of the clustering. For example, we attempted to use the silhouette method; however, due to its expensive computational cost, we had to look at other values. Therefore, we settled with the Dunn Index, as it was sufficient to dictate whether the diameter of each cluster was minimized while the distance between each cluster was maximized. 
+Since the cluster-centers are serving as reference-points for our path, we also add our starting point to the cluster-centers, if it not already is one, as the path need to contain this point. The algorithm then calculates the distance between the centers using dijkstras, and then uses a tsp-approximation algorithm (pip library tspy) to find the optimal route in the graph that visits all cluster-centers at least once. The algorithm then modifies the suggested TSP-tour to make sure that we start and end at the starting location provided in the input. The car will not deviate from this suggested tour during its run. Finally, to determine where to drop off the different TA's, the algorithm analyzes all the nodes that the car will be visiting on it's tour, and decides what TA's is optimal to drop off at any node. After the algorithm has decided on its path for traversal and its drop-off locations, it proceeds to write the results to the specified output file. 
 
 
+April Shin, Fredrik Waaler <br/>
+CS 170 Algorithms <br/>
+UC Berkeley
