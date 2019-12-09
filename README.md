@@ -48,7 +48,7 @@ Verify  validity of clusters by making sure every cluster contains a home. Other
 3. Compute average of intra-cluster average distances i.e. the average of the average sum of distances within each cluster as well as the Dunn Index in order to quantify the quality of the clusters generated in Step 2. <br/>
 4. Generate improved centers using previously generated clusters by identifying the Euclidean median of each cluster using distances, and choosing the nearest location to the median to be the new center - hence k-medians clustering.
 Repeat steps 2, 3, and 4 with improved centers at each iteration.
-However, if a new average of intra-cluster average distances is generated, save into archive of all cluster history. Otherwise, if this average was previously generated or if the difference of previous and currently generated averages are converging to a value less than manually chosen epsilon, stop the algorithm and return the set of clusters with the minimum average of intra-cluster average distances. <br/>
+However, if a new average of intra-cluster average distances is generated, save into archive of all cluster history. Otherwise, if this average was previously generated or if the difference of previous and currently generated averages are converging to a value less than manually chosen epsilon, stop the algorithm and return the set of clusters with the minimum average of intra-cluster average distances.
 As the aim is to generate the optimal k number of clusters, run k-medians clustering algorithm to generate k clusters for each potential value k.
 The k value with the highest Dunn Index for the generated clusters is the best approximated k value. Ultimately, we obtain a k clusters with an approximated k to yield a highest Dunn Index.
 
